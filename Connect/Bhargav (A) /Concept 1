@@ -1,0 +1,106 @@
+
+# Understanding Static, Dynamic, and Hybrid Rendering in My Next.js Application
+
+In my application, I used a combination of static, dynamic, and hybrid rendering to balance the core trade-off triangle: **performance**, **scalability**, and **data freshness**. Next.js allows each page to choose the rendering strategy that fits its purpose, and this flexibility helps avoid unnecessary slowness or stale content.
+
+
+## Static Rendering (SSG)
+
+Static rendering pre-builds the HTML and serves it from the CDN.
+This gives:
+- Fastest performance  
+- Highest scalability  
+- Least fresh data  
+
+
+Static pages are ideal for content that rarely changes.
+
+<!-- Demo change for pull request workflow -->
+
+### Where I Used Static Rendering
+I used static rendering for:
+- About section  
+- Stable product catalog  
+- Blog listing  
+
+( (tsx)
+export const revalidate = 3600; // Rebuild every hour )
+This keeps the page fast while still updating periodically.
+
+
+## Dynamic Rendering (SSR)
+
+Dynamic rendering generates HTML on **every request**.
+
+This gives:
+- Always freshest data  
+- Slower page loads  
+- Higher server cost  
+
+### Where I Used Dynamic Rendering
+I used SSR for:
+- User dashboards  
+- Any page showing personalized or live data  
+- Real-time financial or activity information  
+
+tsx
+export const dynamic = "force-dynamic";
+
+or
+
+tsx
+fetch(apiUrl, { cache: "no-store" });
+
+These ensure the user always sees fresh content.
+
+
+## Hybrid Rendering (ISR / Mixed Strategies)
+
+Hybrid rendering combines static generation with automatic revalidation.
+
+This provides:
+- Fast like static  
+- Fresh like dynamic  
+- Lower server cost  
+
+### Where I Used Hybrid Rendering
+I used hybrid rendering for:
+- Homepage  
+- News/feed sections  
+- Product updates every few minutes  
+
+```tsx
+export const revalidate = 60; // Regenerate every minute
+```
+
+This keeps content fresh without generating on every request.
+
+
+## Case Study Analysis: DailyEdge “Outdated News” Problem
+
+DailyEdge used purely static rendering for the homepage. It was fast, but the **Breaking News** section became stale.
+
+Switching everything to SSR fixed the freshness problem but caused:
+- High server cost  
+- Slower performance  
+- Poor scalability  
+
+### Balanced Solution
+
+Using Next.js App Router features:
+
+| Section       | Rendering                             | Reason                          |
+|---------------|---------------------------------------|---------------------------------|
+| Homepage      | Static + `revalidate: 120`            | Fast + refresh every 2 minutes  |
+| Breaking News | Dynamic (`dynamic = "force-dynamic"`) | Needs real-time accuracy        |
+| Articles      | Static + `revalidate: 3600`           | SEO + slow-changing content     |
+
+This balanced approach provides the ideal mix of speed, freshness, and scalability.
+
+## Summary
+
+By assigning the correct rendering strategy to each page, I ensure:
+
+- The app stays **fast** where speed matters  
+- Data stays **fresh** where accuracy matters  
+- The system remains **scalable** where traffic is high  
