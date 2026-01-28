@@ -1,0 +1,9 @@
+Docker and CI/CD pipelines simplify deployment by making the process consistent, repeatable, and automated. Docker packages the entire application—code, dependencies, and runtime—into a container, ensuring it runs the same way locally, in staging, and in production. This removes the classic “works on my machine” problem. In our project, Docker allows us to define a single image that can be deployed across environments without manual setup.
+
+CI/CD pipelines automate the steps from code commit to deployment. When code is pushed, the pipeline builds the Docker image, runs checks, and deploys it to the cloud. This reduces human error and ensures every release follows the same verified process.
+
+In the QuickServe case study, deployments fail because of poor environment variable management, improper container cleanup, and misconfigured pipelines. Missing environment variables indicate secrets are not injected correctly at runtime. Port conflicts and old containers still running suggest containers are not being stopped or versioned properly during deployment.
+
+A better approach is to use proper containerization, where ports are explicitly defined, containers are version-tagged, and old containers are gracefully replaced. Environment variables should be managed securely using GitHub Secrets, AWS Parameter Store, or Azure Key Vault, not hardcoded in images or configs.
+
+By designing a clean pipeline—from code commit, to container build, to cloud deployment—teams can ensure secure, predictable, and scalable deployments on AWS or Azure. This “chain of trust” is critical for production-ready systems.
