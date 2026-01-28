@@ -1,0 +1,9 @@
+At RedConnect, the fast-feeling of the app, the freshness of the data and the scaling capability during emergencies are heavily dependent on the option of the static, dynamic, and hybrid rendering.
+
+Pages such as the Landing page and the About page are done with the help of Static rendering (SSG). These pages do not need much dynamic definition, so it is logical to calculate them during the build-time. They load within seconds, scale on CDN caching with ease and do not place any burden on the server. Nevertheless, the time-sensitive data cannot be rendered with the use of statical implementation since the updates will not be displayed instantly.
+
+Pages such as user dashboard or hospital inventory view are dynamic rendered (SSR) where the information must be precise and recent. As it could be an example, a hospital must always be able to see the current stock level of blood. Although this guarantees new data, it also consumes more resources and more money, particularly when a large number of people are using the application simultaneously.
+
+RedConnect balances the two with hybrid rendering and the use of ISR in such pages as the blood availability listing. These pages are generated using the revalidate and updated at some periodic time. This makes the app both fast and at the same time the blood availability data is updated regularly, making it useful.
+
+This will not be the issue that is observed in the DailyEdge case study. Rather than balancing speed or freshness, RedConnect applies the appropriate rendering strategy on every page so that it can provide performance, scalability and trustworthy data when it is needed the most.
