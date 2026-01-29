@@ -1,4 +1,4 @@
-# 🩸 BloodConnect — Rendering Strategy Case Study
+# 🩸 RedConnect — Rendering Strategy Case Study
 
 **Real-Time Blood Donation & Inventory Management Platform (Next.js App Router)**
 
@@ -169,32 +169,7 @@ A hybrid approach ensures:
 
 ---
 
-## 7. How This Would Be Explained in the Demo Video
-
-In the demo video, the following would be shown:
-
-1. **Static Page**
-
-   * Awareness or onboarding page
-   * Instant load via SSG
-
-2. **ISR Page**
-
-   * Blood availability dashboard
-   * Demonstration of automatic revalidation
-
-3. **SSR Page**
-
-   * Hospital admin panel
-   * Always-fresh inventory data
-
-**Key explanation in the video:**
-
-> Not all data needs to be real-time. Only the data that saves lives must be.
-
----
-
-## 8. Conclusion
+## 7. Conclusion
 
 BloodConnect demonstrates how **selective rendering strategies** can solve a real-world, life-critical problem. By combining **static rendering**, **incremental static regeneration**, **dynamic rendering**, and **real-time communication**, the platform balances **speed, freshness, and scalability** without unnecessary cost or complexity.
 
