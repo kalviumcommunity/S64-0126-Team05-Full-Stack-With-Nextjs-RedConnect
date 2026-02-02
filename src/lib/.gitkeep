@@ -1,0 +1,12 @@
+# Lib Directory
+
+This directory will contain utility functions, helpers, and configuration files.
+
+Examples:
+- API client configurations
+- Data validation utilities
+- Date/time formatters
+- Constants and enums
+- Type definitions
+- Database connection helpers
+
