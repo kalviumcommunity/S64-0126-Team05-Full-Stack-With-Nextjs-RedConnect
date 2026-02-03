@@ -212,3 +212,7 @@ This project is part of a team assignment for Sprint 1.
 **Team**: Team05 - RedConnect  
 **Sprint**: Sprint 1 - Project Initialization & Folder Structure
 
+
+## Aryan 
+**In Concept 2.10**
+ I set up secure environment variable management for the project. I created a .env.local file to store sensitive credentials and a .env.example file to document all required variables with placeholders. I ensured that only variables prefixed with NEXT_PUBLIC_ are accessible on the client side, keeping server secrets secure. I updated .gitignore to prevent environment files from being committed. Finally, I documented the purpose and usage of each variable in the README and avoided common security pitfalls.
