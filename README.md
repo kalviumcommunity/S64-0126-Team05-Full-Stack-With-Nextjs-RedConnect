@@ -203,6 +203,139 @@ This project follows a structured development workflow:
 
 ---
 
+## 🔀 Git Workflow & Branch Strategy
+
+### Branch Naming Conventions
+
+We follow a consistent branch naming pattern to maintain clarity and traceability:
+
+- **Features**: `feature/<feature-name>`
+  - Example: `feature/login-auth`, `feature/blood-inventory-dashboard`
+- **Bug Fixes**: `fix/<bug-name>`
+  - Example: `fix/navbar-alignment`, `fix/api-error-handling`
+- **Chores/Tasks**: `chore/<task-name>`
+  - Example: `chore/update-dependencies`, `chore/refactor-utils`
+- **Documentation**: `docs/<update-name>`
+  - Example: `docs/update-readme`, `docs/api-documentation`
+
+**Important**: All team members must follow this naming format to ensure consistency across the repository.
+
+### Pull Request Template
+
+We use a standardized PR template located at `.github/pull_request_template.md`. When creating a pull request, the template will automatically populate with the following sections:
+
+- **Summary**: Brief explanation of the PR's purpose
+- **Changes Made**: List of key updates or fixes
+- **Screenshots / Evidence**: Visual proof or console output when relevant
+- **Checklist**: Verification items including:
+  - Code builds successfully
+  - Lint & tests pass
+  - Reviewed by at least one teammate
+  - Linked to corresponding issue
+  - No console errors or warnings
+  - ESLint + Prettier checks pass
+  - Comments and documentation are meaningful
+  - Sensitive data is not exposed
+
+This template helps reviewers quickly understand the purpose and scope of each PR.
+
+### Code Review Checklist
+
+Every pull request must be reviewed using our shared checklist located at `.github/CODE_REVIEW_CHECKLIST.md`. The checklist includes:
+
+**Code Quality**
+- Code follows naming conventions and structure
+- Functionality verified locally
+- No console errors or warnings
+- ESLint + Prettier checks pass
+- Comments and documentation are meaningful
+- Sensitive data is not exposed
+
+**Code Structure**
+- Files are organized according to project structure
+- Components are reusable and follow single responsibility principle
+- No duplicate code or unnecessary complexity
+- TypeScript types are properly defined
+
+**Functionality**
+- Feature works as expected
+- Edge cases are handled appropriately
+- Error handling is implemented where needed
+- User experience is considered
+
+**Security & Best Practices**
+- No hardcoded secrets or API keys
+- Environment variables are used correctly
+- Input validation is implemented
+- No security vulnerabilities introduced
+
+**Performance**
+- No unnecessary re-renders
+- Large data sets are handled efficiently
+- Images and assets are optimized
+- Code splitting is considered for large features
+
+Reviewers should use this checklist to ensure consistent code quality across all contributions.
+
+### Branch Protection Rules
+
+To maintain code quality and prevent direct pushes to the main branch, we have configured branch protection rules on GitHub:
+
+**Protected Branch: `main`**
+
+1. **Require pull request reviews before merging**
+   - At least one approval from a team member is required
+   - Dismiss stale reviews when new commits are pushed
+
+2. **Require status checks to pass before merging**
+   - ESLint checks must pass
+   - Build must succeed
+   - All required checks must be green
+
+3. **Disallow direct pushes to main**
+   - All changes must go through pull requests
+   - No force pushes allowed
+
+4. **Require PRs to be up to date before merging**
+   - PRs must be rebased or merged with the latest `main` branch
+   - Prevents merge conflicts and integration issues
+
+**How to Configure:**
+1. Go to your GitHub repository
+2. Navigate to **Settings** → **Branches**
+3. Click **Add branch protection rule**
+4. Set branch name pattern to `main`
+5. Enable the rules listed above
+6. Save the protection rule
+
+### Workflow Reflection
+
+This structured Git workflow helps maintain code quality, collaboration, and velocity in several ways:
+
+**Code Quality**
+- **Consistent Standards**: Branch naming conventions make it easy to identify the purpose of each branch at a glance, reducing confusion and improving traceability.
+- **Automated Checks**: Branch protection rules ensure that all code passes linting and builds successfully before merging, catching errors early.
+- **Review Process**: The PR template and review checklist ensure that all code is thoroughly examined, maintaining high standards across the codebase.
+
+**Collaboration**
+- **Clear Communication**: PR templates provide a structured way to communicate changes, making it easier for reviewers to understand what was done and why.
+- **Knowledge Sharing**: Code reviews become learning opportunities where team members can share best practices and catch potential issues.
+- **Reduced Conflicts**: Requiring PRs to be up to date before merging prevents integration conflicts and keeps the main branch stable.
+
+**Velocity**
+- **Faster Reviews**: Standardized templates and checklists make reviews faster and more efficient, as reviewers know exactly what to look for.
+- **Fewer Bugs**: The review process catches issues before they reach production, reducing the time spent on bug fixes later.
+- **Confidence**: Team members can merge code with confidence, knowing it has been reviewed and tested, which speeds up the development cycle.
+
+**Traceability**
+- **Issue Linking**: Linking PRs to issues creates a clear audit trail of what was changed and why.
+- **Branch History**: Consistent naming makes it easy to search and filter branches, improving project management.
+- **Documentation**: PR descriptions serve as documentation of changes, making it easier to understand the evolution of the codebase.
+
+This workflow creates a safety net that allows the team to move quickly while maintaining high code quality standards.
+
+---
+
 ## 📄 License
 
 This project is part of a team assignment for Sprint 1.
