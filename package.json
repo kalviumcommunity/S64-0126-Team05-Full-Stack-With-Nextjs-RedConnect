@@ -11,7 +11,11 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "dotenv": "^17.2.3",
     "next": "16.1.6",
+    "pg": "^8.18.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
@@ -24,10 +28,11 @@
     "eslint-config-next": "^16.1.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
+    "husky": "^8.0.0",
     "prettier": "^3.8.1",
+    "prisma": "^7.3.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "husky": "^8.0.0"
+    "typescript": "^5"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "eslint --fix"
