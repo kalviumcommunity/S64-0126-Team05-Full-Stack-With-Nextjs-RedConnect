@@ -25,6 +25,7 @@ redconnect/
 │   │   ├── layout.tsx    # Root layout component
 │   │   ├── page.tsx      # Home page
 │   │   ├── globals.css   # Global styles
+│   │   └── api/          # REST API routes (App Router route handlers)
 │   │   └── favicon.ico   # Site favicon
 │   ├── components/       # Reusable UI components
 │   │   └── (components will be added here)
@@ -140,6 +141,198 @@ Contains utility functions, helper modules, and configuration files. This includ
 - **Constants**: UPPER_SNAKE_CASE
 
 ---
+
+## 🔌 REST API (Next.js App Router)
+
+### File-based routing (how endpoints are created)
+
+In Next.js App Router, **every folder inside `src/app/api/` becomes part of an API URL**, and each `route.ts` exports HTTP method handlers (`GET`, `POST`, `PATCH`, `DELETE`, etc.).
+
+Example mapping:
+
+- `src/app/api/users/route.ts` → `GET/POST /api/users`
+- `src/app/api/users/[id]/route.ts` → `GET/PATCH/DELETE /api/users/:id`
+
+### Route hierarchy (resources are nouns, plural, lowercase)
+
+Core resources from Prisma:
+
+- `users`
+- `messages`
+- `reports`
+- `notifications`
+
+Implemented endpoints:
+
+#### Users
+
+- `GET /api/users` (pagination: `page`, `limit`)
+- `POST /api/users`
+- `GET /api/users/:id`
+- `PATCH /api/users/:id`
+- `DELETE /api/users/:id`
+
+Nested (relationship) reads:
+
+- `GET /api/users/:id/messages` (pagination + `role=all|sent|received`)
+- `GET /api/users/:id/reports` (pagination)
+- `GET /api/users/:id/notifications` (pagination + `isRead=true|false`)
+
+#### Messages
+
+- `GET /api/messages` (pagination + optional filters: `senderId`, `receiverId`)
+- `POST /api/messages`
+- `GET /api/messages/:id`
+- `PATCH /api/messages/:id`
+- `DELETE /api/messages/:id`
+
+#### Reports
+
+- `GET /api/reports` (pagination + optional filters: `userId`, `status`, `category`)
+- `POST /api/reports`
+- `GET /api/reports/:id`
+- `PATCH /api/reports/:id`
+- `DELETE /api/reports/:id`
+
+#### Notifications
+
+- `GET /api/notifications` (pagination + optional filters: `userId`, `isRead=true|false`)
+- `POST /api/notifications`
+- `GET /api/notifications/:id`
+- `PATCH /api/notifications/:id`
+- `DELETE /api/notifications/:id`
+
+#### Misc (sanity check)
+
+- `GET /api/test` (legacy demo route)
+
+### Pagination semantics (for list endpoints)
+
+List endpoints accept:
+
+- `page` (default `1`)
+- `limit` (default `10`, max `100`)
+
+Response includes:
+
+```json
+{
+  "data": [],
+  "meta": { "page": 1, "limit": 10, "total": 0, "totalPages": 0 }
+}
+```
+
+### Error handling & status codes
+
+All error responses follow:
+
+```json
+{ "error": { "message": "..." } }
+```
+
+Common status codes:
+
+- `200` OK: successful reads/updates/deletes
+- `201` Created: successful creates
+- `400` Bad Request: invalid input (bad `id`, missing fields, invalid query params, invalid JSON)
+- `404` Not Found: resource missing
+- `409` Conflict: uniqueness violation (e.g., duplicate user email)
+- `500` Internal Server Error: unexpected issues
+
+### Sample curl requests (copy/paste)
+
+> Replace `:id` with a real ID.
+
+#### Users
+
+Get users (page 1):
+
+```bash
+curl -X GET "http://localhost:3000/api/users?page=1&limit=10"
+```
+
+Create a user:
+
+```bash
+curl -X POST "http://localhost:3000/api/users" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Alice\",\"email\":\"alice@example.com\",\"password\":\"password123\",\"role\":\"user\"}"
+```
+
+Update a user:
+
+```bash
+curl -X PATCH "http://localhost:3000/api/users/1" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Alice Updated\"}"
+```
+
+Delete a user:
+
+```bash
+curl -X DELETE "http://localhost:3000/api/users/1"
+```
+
+#### Messages
+
+List messages sent by a user:
+
+```bash
+curl -X GET "http://localhost:3000/api/messages?senderId=1&page=1&limit=10"
+```
+
+Create a message:
+
+```bash
+curl -X POST "http://localhost:3000/api/messages" \
+  -H "Content-Type: application/json" \
+  -d "{\"content\":\"Hello!\",\"senderId\":1,\"receiverId\":2}"
+```
+
+#### Reports
+
+Create a report:
+
+```bash
+curl -X POST "http://localhost:3000/api/reports" \
+  -H "Content-Type: application/json" \
+  -d "{\"title\":\"Issue\",\"description\":\"Something is wrong\",\"category\":\"bug\",\"userId\":1}"
+```
+
+Filter reports:
+
+```bash
+curl -X GET "http://localhost:3000/api/reports?status=pending&category=bug&page=1&limit=10"
+```
+
+#### Notifications
+
+Create a notification:
+
+```bash
+curl -X POST "http://localhost:3000/api/notifications" \
+  -H "Content-Type: application/json" \
+  -d "{\"message\":\"Your report was received\",\"userId\":1}"
+```
+
+Unread notifications for a user:
+
+```bash
+curl -X GET "http://localhost:3000/api/notifications?userId=1&isRead=false&page=1&limit=10"
+```
+
+### Evidence (Postman / screenshots)
+
+- Postman collection included at `postman/RedConnect.postman_collection.json`
+- Add screenshots (recommended):
+  - `docs/api-users.png`
+  - `docs/api-messages.png`
+  - `docs/api-reports.png`
+  - `docs/api-notifications.png`
+
+### Reflection: why consistent naming matters
+
+Using **plural nouns** (`/api/users`) instead of verbs (`/api/getUsers`) makes routes predictable, reduces frontend/backend mismatch, and keeps integrations consistent. With a stable naming scheme, new endpoints “fit” naturally, making the codebase easier to scale and maintain across sprints.
 
 ## 💭 Reflection: Why This Structure?
 
