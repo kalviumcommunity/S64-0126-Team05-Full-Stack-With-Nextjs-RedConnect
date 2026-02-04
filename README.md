@@ -543,6 +543,8 @@ This project is part of a team assignment for Sprint 1.
 **In Concept 2.10**
  I set up secure environment variable management for the project. I created a .env.local file to store sensitive credentials and a .env.example file to document all required variables with placeholders. I ensured that only variables prefixed with NEXT_PUBLIC_ are accessible on the client side, keeping server secrets secure. I updated .gitignore to prevent environment files from being committed. Finally, I documented the purpose and usage of each variable in the README and avoided common security pitfalls.
 
+ For 2.15, I implemented Prisma database migrations to keep the PostgreSQL schema version-controlled and consistent across environments. I created and applied migration files using prisma migrate dev and learned how to safely reset and reapply the schema during development. I also built a reusable seed script to populate the database with initial users, hospital data, blood inventory, and emergency requests. This ensures every developer and environment starts with the same structured data.
+
 ## Bhargav
 In concept 
 In Concept 2.14, I integrated Prisma ORM into our RedConnect Next.js project and connected it to our PostgreSQL database. I initialized Prisma using npx prisma init, configured the DATABASE_URL, and designed the initial database schema in schema.prisma including core models like User and Project with correct relations, constraints, and defaults.
