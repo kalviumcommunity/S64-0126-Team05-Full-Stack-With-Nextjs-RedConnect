@@ -46,6 +46,78 @@ model EmergencyRequest {
   createdAt  DateTime @default(now())
 }
 
+// Blood Donation Management Models
+model Donor {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  phone       String
+  bloodType   String
+  dateOfBirth DateTime
+  address     String
+  city        String
+  lastDonated DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  donations Donation[]
+  
+  @@index([bloodType])
+  @@index([city])
+  @@index([email])
+}
+
+model BloodBank {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  city      String
+  contactNo String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  
+  inventories BloodBankInventory[]
+  donations   Donation[]
+  
+  @@index([city])
+  @@index([email])
+}
+
+model BloodBankInventory {
+  id        String   @id @default(uuid())
+  bloodType String
+  units     Int      @default(0)
+  minUnits  Int      @default(10)
+  expiryDate DateTime?
+  updatedAt DateTime @updatedAt
+  
+  bloodBankId String
+  bloodBank   BloodBank @relation(fields: [bloodBankId], references: [id])
+  
+  @@unique([bloodBankId, bloodType])
+  @@index([bloodType])
+  @@index([bloodBankId])
+}
+
+model Donation {
+  id          String   @id @default(uuid())
+  units       Int      @default(1)
+  status      String   @default("pending") // pending, completed, rejected
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  donorId   String
+  donor     Donor    @relation(fields: [donorId], references: [id])
+  
+  bloodBankId String
+  bloodBank   BloodBank @relation(fields: [bloodBankId], references: [id])
+  
+  @@index([donorId])
+  @@index([bloodBankId])
+  @@index([status])
+  @@index([createdAt])
+}
+
 enum Role {
   DONOR
   HOSPITAL
