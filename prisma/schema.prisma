@@ -52,4 +52,79 @@ model Notification {
 
   userId Int
   user   User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// Blood Donation Management Models
+model BloodBank {
+  id          Int      @id @default(autoincrement())
+  name        String
+  address     String
+  city        String
+  contactNo   String
+  email       String   @unique
+  createdAt   DateTime @default(now())
+  
+  inventories BloodInventory[]
+  donations   Donation[]
+  
+  @@index([city])
+  @@index([email])
+}
+
+model BloodInventory {
+  id          Int      @id @default(autoincrement())
+  bloodType   String   // A+, A-, B+, B-, AB+, AB-, O+, O-
+  units       Int      @default(0)
+  minUnits    Int      @default(10)
+  updatedAt   DateTime @updatedAt
+  
+  bloodBankId Int
+  bloodBank   BloodBank @relation(fields: [bloodBankId], references: [id])
+  
+  @@unique([bloodBankId, bloodType])
+  @@index([bloodType])
+  @@index([bloodBankId])
+}
+
+model Donor {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  phone       String
+  bloodType   String
+  dateOfBirth DateTime
+  address     String
+  city        String
+  lastDonated DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  donations Donation[]
+  
+  @@index([bloodType])
+  @@index([city])
+  @@index([email])
+}
+
+model Donation {
+  id          Int      @id @default(autoincrement())
+  units       Int      @default(1)
+  status      String   @default("pending") // pending, completed, rejected
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  donorId     Int
+  donor       Donor    @relation(fields: [donorId], references: [id])
+  
+  bloodBankId Int
+  bloodBank   BloodBank @relation(fields: [bloodBankId], references: [id])
+  
+  @@index([donorId])
+  @@index([bloodBankId])
+  @@index([status])
+  @@index([createdAt])
 }
