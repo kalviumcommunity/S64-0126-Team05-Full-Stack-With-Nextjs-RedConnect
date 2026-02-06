@@ -22,15 +22,18 @@ This platform ensures fast access, fresh data, and scalable infrastructure, espe
 redconnect/
 ├── src/
 │   ├── app/              # Routes & pages (App Router)
-│   │   ├── layout.tsx    # Root layout component
-│   │   ├── page.tsx      # Home page
+│   │   ├── layout.tsx    # Root layout (nav bar)
+│   │   ├── page.tsx      # Home (public)
+│   │   ├── login/        # Login (public)
+│   │   ├── dashboard/    # Dashboard (protected)
+│   │   ├── users/        # Users list & [id] (protected)
+│   │   ├── not-found.tsx # Custom 404
 │   │   ├── globals.css   # Global styles
-│   │   └── api/          # REST API routes (App Router route handlers)
+│   │   ├── api/          # REST API routes
 │   │   └── favicon.ico   # Site favicon
-│   ├── components/       # Reusable UI components
-│   │   └── (components will be added here)
+│   ├── middleware.ts    # Auth: public vs protected routes
+│   ├── components/      # Reusable UI components
 │   └── lib/              # Utilities, helpers, configs
-│       └── (utilities will be added here)
 ├── public/               # Static assets (images, icons, etc.)
 ├── .gitignore           # Git ignore rules
 ├── next.config.ts       # Next.js configuration
@@ -70,6 +73,81 @@ Contains utility functions, helper modules, and configuration files. This includ
 - Database connection helpers
 
 **Purpose:** Separates business logic and utilities from UI components, making the codebase more organized and testable. This structure supports clean architecture principles.
+
+---
+
+## 🗺️ App Router & Routing
+
+### Route map
+
+| Route | Type | Description |
+|-------|------|-------------|
+| `/` | **Public** | Home page |
+| `/login` | **Public** | Login page (sets auth cookie, redirects to dashboard) |
+| `/dashboard` | **Protected** | Dashboard (requires valid token) |
+| `/users` | **Protected** | List users |
+| `/users/[id]` | **Protected** | Dynamic user profile (e.g. `/users/1`, `/users/2`) |
+| (any other path) | — | Custom 404 via `not-found.tsx` |
+
+### File-based routing structure
+
+```
+app/
+├── page.tsx               → Home (public)
+├── login/
+│   └── page.tsx           → Login page (public)
+├── dashboard/
+│   └── page.tsx           → Protected route
+├── users/
+│   ├── page.tsx           → List users (protected)
+│   └── [id]/
+│        └── page.tsx      → Dynamic route for each user
+├── not-found.tsx          → Custom 404 page
+└── layout.tsx             → Global layout (nav bar)
+```
+
+- **`page.tsx`** — defines a page route.
+- **`[id]/page.tsx`** — dynamic route where `id` can be any value.
+- **`layout.tsx`** — wraps shared UI (e.g. navigation).
+
+### Middleware (public vs protected)
+
+Protected routes require a valid JWT in the `token` cookie. Middleware runs on the Edge; we use **`jose`** (Edge-compatible) for JWT verification. For local demo, a mock token is also accepted.
+
+```ts
+// src/middleware.ts (simplified)
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  if (pathname.startsWith("/login") || pathname === "/") return NextResponse.next();
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/users")) {
+    const token = req.cookies.get("token")?.value;
+    if (!token) return NextResponse.redirect(new URL("/login", req.url));
+    try {
+      await jose.jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+      return NextResponse.next();
+    } catch {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
+  return NextResponse.next();
+}
+export const config = { matcher: ["/dashboard/:path*", "/users/:path*"] };
+```
+
+### Screenshots (evidence)
+
+Add screenshots to the repo and link them here:
+
+- **Public vs protected:** `docs/routes-public-vs-protected.png` — home/login accessible; dashboard/users redirect to login when not authenticated.
+- **Dynamic user pages:** `docs/routes-users-1-2.png` — `/users/1` and `/users/2` rendering different content.
+- **Navigation and breadcrumbs:** `docs/routes-nav-breadcrumbs.png` — nav bar and breadcrumbs on `/users/[id]`.
+- **Custom 404:** `docs/routes-404.png` — `not-found.tsx` when visiting a non-existent route.
+
+### Reflection
+
+- **Dynamic routing** — `[id]` keeps URLs clean and scalable; new users don’t require new files. It also helps SEO with meaningful URLs like `/users/1`.
+- **Breadcrumbs and layout** — A shared layout with nav and breadcrumbs on `/users` and `/users/[id]` improves wayfinding and keeps the UX consistent.
+- **Error states** — A custom `not-found.tsx` gives a clear 404 experience and a link back home instead of a generic error.
 
 ---
 
