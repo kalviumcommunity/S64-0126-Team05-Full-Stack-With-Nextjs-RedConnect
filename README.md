@@ -22,7 +22,7 @@ This platform ensures fast access, fresh data, and scalable infrastructure, espe
 redconnect/
 ├── src/
 │   ├── app/              # Routes & pages (App Router)
-│   │   ├── layout.tsx    # Root layout (nav bar)
+│   │   ├── layout.tsx    # Root layout (shared header + sidebar)
 │   │   ├── page.tsx      # Home (public)
 │   │   ├── login/        # Login (public)
 │   │   ├── dashboard/    # Dashboard (protected)
@@ -33,7 +33,9 @@ redconnect/
 │   │   └── favicon.ico   # Site favicon
 │   ├── middleware.ts    # Auth: public vs protected routes
 │   ├── components/      # Reusable UI components
-│   └── lib/              # Utilities, helpers, configs
+│   │   ├── layout/       # Layout components (Header, Sidebar, LayoutWrapper)
+│   │   └── ui/           # Basic UI primitives (Button, Card, InputField)
+│   └── lib/             # Utilities, helpers, configs
 ├── public/               # Static assets (images, icons, etc.)
 ├── .gitignore           # Git ignore rules
 ├── next.config.ts       # Next.js configuration
@@ -217,6 +219,181 @@ Add screenshots to the repo and link them here:
 - **Functions/Variables**: camelCase
 - **Types/Interfaces**: PascalCase with descriptive names (e.g., `BloodInventory`, `DonorProfile`)
 - **Constants**: UPPER_SNAKE_CASE
+
+---
+
+## 🔌 REST API (Next.js App Router)
+---
+
+## 🧱 Component Architecture & Shared Layout
+
+### Why this component architecture?
+
+- **Reusability**: Common UI pieces (header, sidebar, buttons) are defined once and reused across pages.
+- **Maintainability**: Updating a shared component (e.g. `Header`) updates navigation everywhere.
+- **Scalability**: New pages can plug into the same `LayoutWrapper` without re-implementing layout.
+- **Accessibility**: Shared components can standardize keyboard navigation and ARIA usage.
+
+### Component folder structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx              → Uses shared LayoutWrapper
+│   ├── page.tsx                → Home
+│   ├── dashboard/page.tsx      → Dashboard (uses global layout)
+│   └── users/[id]/page.tsx     → Dynamic user page
+└── components/
+    ├── layout/
+    │   ├── Header.tsx
+    │   ├── Sidebar.tsx
+    │   └── LayoutWrapper.tsx
+    ├── ui/
+    │   └── Button.tsx
+    └── index.ts                → Barrel export
+```
+
+Example barrel file:
+
+```ts
+// src/components/index.ts
+export { default as Header } from "./layout/Header";
+export { default as Sidebar } from "./layout/Sidebar";
+export { default as LayoutWrapper } from "./layout/LayoutWrapper";
+export { default as Button } from "./ui/Button";
+```
+
+### Key shared components (snippets)
+
+**Header** — shared top navigation:
+
+```ts
+// src/components/layout/Header.tsx
+"use client";
+
+import Link from "next/link";
+
+export default function Header() {
+  return (
+    <header className="w-full bg-blue-600 text-white px-6 py-3 flex justify-between items-center">
+      <h1 className="font-semibold text-lg">RedConnect</h1>
+      <nav className="flex gap-4">
+        <Link href="/">Home</Link>
+        <Link href="/dashboard">Dashboard</Link>
+        <Link href="/users">Users</Link>
+      </nav>
+    </header>
+  );
+}
+```
+
+**Sidebar** — contextual navigation:
+
+```ts
+// src/components/layout/Sidebar.tsx
+"use client";
+
+import Link from "next/link";
+
+const links = [
+  { href: "/dashboard", label: "Overview" },
+  { href: "/users", label: "Users" },
+  { href: "/settings", label: "Settings" },
+];
+
+export default function Sidebar() {
+  return (
+    <aside className="w-64 h-screen bg-gray-100 border-r p-4">
+      <h2 className="text-lg font-bold mb-4">Navigation</h2>
+      <ul className="space-y-2">
+        {links.map((link) => (
+          <li key={link.href}>
+            <Link href={link.href} className="text-gray-700 hover:text-blue-600">
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+```
+
+**LayoutWrapper** — composes header + sidebar + main content:
+
+```ts
+// src/components/layout/LayoutWrapper.tsx
+import type { ReactNode } from "react";
+
+import Header from "./Header";
+import Sidebar from "./Sidebar";
+
+export default function LayoutWrapper({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-col h-screen">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 bg-white p-6 overflow-auto">{children}</main>
+      </div>
+    </div>
+  );
+}
+```
+
+**Root layout** — applies `LayoutWrapper` to all pages:
+
+```ts
+// src/app/layout.tsx (excerpt)
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <LayoutWrapper>{children}</LayoutWrapper>
+      </body>
+    </html>
+  );
+}
+```
+
+**Reusable Button**:
+
+```ts
+// src/components/ui/Button.tsx
+interface ButtonProps {
+  label: string;
+  onClick?: () => void;
+  variant?: "primary" | "secondary";
+}
+
+export default function Button({ label, onClick, variant = "primary" }: ButtonProps) {
+  const styles =
+    variant === "primary"
+      ? "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      : "bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300";
+
+  return (
+    <button type="button" onClick={onClick} className={styles}>
+      {label}
+    </button>
+  );
+}
+```
+
+### Screenshots (components & layout)
+
+Recommended screenshots to add under `docs/`:
+
+- `docs/layout-full.png` — full layout with header + sidebar + content.
+- `docs/layout-dashboard.png` — dashboard page inside the layout.
+- `docs/storybook-button.png` (optional) — Button component shown in Storybook (or similar).
+
+### Reflection: component architecture
+
+- **Props contracts** keep components flexible: e.g. `Button` accepts `label`, `onClick`, and `variant` to support multiple use cases without duplicating markup.
+- **Shared layout components** (`Header`, `Sidebar`, `LayoutWrapper`) enforce consistent navigation and spacing across all routes, reducing visual drift as the app grows.
+- **Scalability**: new routes only need to focus on page-specific content; the layout and core UI patterns are already handled, which improves onboarding and development speed.
+- **Accessibility**: centralizing navigation and buttons makes it easier to standardize keyboard focus behavior, ARIA labels, and color contrast checks in one place.
 
 ---
 
