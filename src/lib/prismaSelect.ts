@@ -6,6 +6,20 @@ export const userSafeSelect = {
   createdAt: true,
 } as const;
 
+export const donorSelect = {
+  id: true,
+  name: true,
+  email: true,
+  phone: true,
+  bloodType: true,
+  dateOfBirth: true,
+  address: true,
+  city: true,
+  lastDonated: true,
+  isActive: true,
+  createdAt: true,
+} as const;
+
 export const messageSelect = {
   id: true,
   content: true,
