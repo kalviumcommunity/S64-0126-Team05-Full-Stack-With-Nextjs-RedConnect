@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
+import { sendSuccess, sendError } from '@/lib/responseHandler';
+import { ERROR_CODES } from '@/lib/errorCodes';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,17 +10,19 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!donorId || !bloodBankId || !units || !bloodType) {
-      return NextResponse.json(
-        { error: 'Missing required fields: donorId, bloodBankId, units, bloodType' },
-        { status: 400 }
+      return sendError(
+        "Missing required fields: donorId, bloodBankId, units, bloodType",
+        ERROR_CODES.MISSING_FIELD,
+        400
       );
     }
 
     // Validate units
     if (units <= 0) {
-      return NextResponse.json(
-        { error: 'Units must be a positive number' },
-        { status: 400 }
+      return sendError(
+        "Units must be a positive number",
+        ERROR_CODES.VALIDATION_ERROR,
+        400
       );
     }
 
@@ -114,43 +118,50 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    return NextResponse.json(result, { status: 201 });
+    return sendSuccess(
+      result,
+      "Donation processed successfully",
+      201
+    );
   } catch (error: unknown) {
     console.error('Blood donation error:', error);
     const err = error as Error & { code?: string; meta?: { cause?: string } };
 
     // Check if it's a known validation error
-    if (err.message?.includes('not found') || err.message?.includes('mismatch')) {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: err.message,
-          rollback: 'Transaction rolled back - no changes were made to the database',
-        },
-        { status: 404 }
+    if (err.message?.includes('not found')) {
+      return sendError(
+        "Donor or blood bank not found",
+        ERROR_CODES.NOT_FOUND,
+        404,
+        err
+      );
+    }
+
+    if (err.message?.includes('mismatch')) {
+      return sendError(
+        err.message,
+        ERROR_CODES.BLOOD_TYPE_MISMATCH,
+        400,
+        err
       );
     }
 
     // Handle Prisma errors
     if (err.code === 'P2025') {
-      return NextResponse.json(
-        {
-          error: 'Record not found',
-          details: err.meta?.cause || 'Required record does not exist',
-          rollback: 'Transaction rolled back - no changes were made to the database',
-        },
-        { status: 404 }
+      return sendError(
+        "Record not found",
+        ERROR_CODES.NOT_FOUND,
+        404,
+        err
       );
     }
 
     // Generic error
-    return NextResponse.json(
-      {
-        error: 'Failed to process donation',
-        details: err.message,
-        rollback: 'Transaction rolled back - no changes were made to the database',
-      },
-      { status: 500 }
+    return sendError(
+      "Failed to process donation",
+      ERROR_CODES.TRANSACTION_FAILED,
+      500,
+      err
     );
   }
 }
@@ -182,16 +193,22 @@ export async function GET() {
       take: 50,
     });
 
-    return NextResponse.json({ donations, count: donations.length }, { status: 200 });
+    return sendSuccess(
+      {
+        data: donations,
+        meta: {
+          count: donations.length,
+        },
+      },
+      "Donations fetched successfully"
+    );
   } catch (error: unknown) {
     console.error('Failed to fetch donations:', error);
-    const err = error as Error;
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch donations',
-        details: err.message,
-      },
-      { status: 500 }
+    return sendError(
+      "Failed to fetch donations",
+      ERROR_CODES.DATABASE_ERROR,
+      500,
+      error
     );
   }
 }
