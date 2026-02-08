@@ -874,6 +874,269 @@ src/app/api/
             └── route.ts   # User-specific reports
 ```
 
+---
+
+## 🎯 Global API Response Handler
+
+All API endpoints in RedConnect use a **unified response handler** that ensures consistent response formatting across the entire API. This standardized approach improves developer experience, enables better error tracking, and simplifies frontend integration.
+
+### Response Format
+
+#### Success Response
+Every successful API response follows this standardized format:
+
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": {
+    "...": "response payload"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Fields:**
+- `success` (boolean): Always `true` for successful responses
+- `message` (string): Human-readable success message
+- `data` (any): The actual response payload (varies by endpoint)
+- `timestamp` (string): ISO 8601 timestamp when response was generated
+
+#### Error Response
+All error responses follow a consistent structure:
+
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "error": {
+    "code": "ERROR_CODE",
+    "details": "Additional error details (only in development)"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Fields:**
+- `success` (boolean): Always `false` for error responses
+- `message` (string): User-friendly error description
+- `error.code` (string): Machine-readable error code for programmatic handling
+- `error.details` (object, optional): Extra debugging information (development only)
+- `timestamp` (string): ISO 8601 timestamp when error occurred
+
+### Error Codes Reference
+
+The API uses standardized error codes for consistent error handling:
+
+| Code | Description | HTTP Status |
+|------|-------------|-------------|
+| E001 | Validation error - invalid input | 400 |
+| E002 | Missing required field | 400 |
+| E003 | Invalid format or data type | 400 |
+| E004 | Resource not found | 404 |
+| E005 | Donor not found in database | 404 |
+| E006 | Blood bank not found in database | 404 |
+| E007 | Email already exists (duplicate) | 409 |
+| E008 | Duplicate record | 409 |
+| E009 | Blood type mismatch | 400 |
+| E010 | Database operation failed | 500 |
+| E011 | Database connection failure | 500 |
+| E012 | Transaction execution failed | 500 |
+| E500 | Internal server error | 500 |
+| E501 | Unknown error occurred | 500 |
+
+### Response Handler Implementation
+
+The global response handler is implemented in `/src/lib/responseHandler.ts`:
+
+```typescript
+// Success response
+export const sendSuccess = (data, message = "Success", status = 200) => {
+  return NextResponse.json(
+    {
+      success: true,
+      message,
+      data,
+      timestamp: new Date().toISOString(),
+    },
+    { status }
+  );
+};
+
+// Error response
+export const sendError = (message, code, status = 500, details?) => {
+  return NextResponse.json(
+    {
+      success: false,
+      message,
+      error: { code, details },
+      timestamp: new Date().toISOString(),
+    },
+    { status }
+  );
+};
+```
+
+### Usage Examples
+
+#### Example 1: Successful List Endpoint
+```bash
+curl "http://localhost:3000/api/donors?page=1&limit=5"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Donors fetched successfully",
+  "data": {
+    "data": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "bloodType": "AB+",
+        "city": "Mumbai"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 5,
+      "total": 100,
+      "totalPages": 20
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+#### Example 2: Successful Creation
+```bash
+curl -X POST http://localhost:3000/api/donors \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Jane Smith","email":"jane@example.com",...}'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Donor created successfully",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "bloodType": "O+",
+    "createdAt": "2026-02-09T10:30:45.123Z"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+#### Example 3: Validation Error
+```bash
+curl -X POST http://localhost:3000/api/donors \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John"}'  # Missing required fields
+```
+
+Response (400):
+```json
+{
+  "success": false,
+  "message": "Field 'email' is required",
+  "error": {
+    "code": "E002"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+#### Example 4: Duplicate Email Error
+```bash
+curl -X POST http://localhost:3000/api/blood-banks \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bank","email":"existing@bank.com",...}'
+```
+
+Response (409):
+```json
+{
+  "success": false,
+  "message": "A blood bank with this email already exists",
+  "error": {
+    "code": "E007"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+### Developer Experience (DX) Benefits
+
+1. **Predictable Responses**: Every endpoint returns the same response structure, making frontend code simpler and more maintainable.
+
+2. **Easier Error Handling**: Standardized error codes enable consistent error handling logic across the entire application:
+   ```typescript
+   if (response.error?.code === "E007") {
+     showNotification("Email already exists");
+   }
+   ```
+
+3. **Better Debugging**: Every response includes timestamps and error codes, making it easier to trace issues in logs.
+
+4. **Faster Onboarding**: New developers understand the API structure immediately without needing to study each endpoint individually.
+
+5. **Consistent Timestamps**: All responses include ISO 8601 timestamps for reliable audit trails and request tracing.
+
+### Observability & Production Benefits
+
+1. **Centralized Logging**: Error codes can be easily parsed and indexed in logging systems (ELK, Datadog, etc.)
+
+2. **Monitoring Integration**: Consistent error codes enable automated monitoring and alerting:
+   - Track error frequency by type
+   - Set up alerts for critical errors (E500, E012)
+   - Monitor database errors (E010, E011)
+
+3. **API Analytics**: Response structure enables detailed metrics:
+   - Track success vs error rates
+   - Monitor endpoint performance
+   - Analyze common validation errors
+
+4. **Third-party Tools**: Postman, Sentry, and other tools can automatically parse standardized responses.
+
+5. **Backward Compatibility**: New error codes can be added without breaking existing clients that check `success` field first.
+
+### Example: Frontend Integration
+
+```typescript
+// Frontend code using the standardized response
+async function fetchDonors(page: number) {
+  try {
+    const response = await fetch(`/api/donors?page=${page}`);
+    const json = await response.json();
+    
+    if (json.success) {
+      // Handle success - structure is always the same
+      renderTable(json.data.data);
+      updatePagination(json.data.meta);
+    } else {
+      // Handle error with code
+      if (json.error.code === "E005") {
+        showError("Donor not found");
+      } else if (json.error.code === "E010") {
+        showError("Database error - try again later");
+      } else {
+        showError(json.message);
+      }
+    }
+  } catch (err) {
+    showError("Network error");
+  }
+}
+```
+
+---
+
 ### Core Endpoints
 
 #### 1. GET /api/blood-banks - List All Blood Banks
@@ -894,42 +1157,49 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5&city=Mumbai"
 **Successful Response (200):**
 ```json
 {
-  "data": [
-    {
-      "id": "d437cff0-cfa7-43ac-8e70-2be1e0c23a8a",
-      "name": "Central Blood Bank",
-      "address": "123 Medical Street",
-      "city": "Mumbai",
-      "contactNo": "9876543210",
-      "email": "central@bloodbank.com",
-      "createdAt": "2026-02-08T19:25:12.497Z",
-      "inventories": [
-        {
-          "id": "96d2894b-2e1e-4ccc-99db-102f4657fbe0",
-          "bloodType": "A+",
-          "units": 2,
-          "minUnits": 10,
-          "expiryDate": null
-        }
-      ]
+  "success": true,
+  "message": "Blood banks fetched successfully",
+  "data": {
+    "data": [
+      {
+        "id": "d437cff0-cfa7-43ac-8e70-2be1e0c23a8a",
+        "name": "Central Blood Bank",
+        "address": "123 Medical Street",
+        "city": "Mumbai",
+        "contactNo": "9876543210",
+        "email": "central@bloodbank.com",
+        "createdAt": "2026-02-08T19:25:12.497Z",
+        "inventories": [
+          {
+            "id": "96d2894b-2e1e-4ccc-99db-102f4657fbe0",
+            "bloodType": "A+",
+            "units": 2,
+            "minUnits": 10,
+            "expiryDate": null
+          }
+        ]
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 5,
+      "total": 1,
+      "totalPages": 1
     }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 5,
-    "total": 1,
-    "totalPages": 1
-  }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 
 **Error Response (500):**
 ```json
 {
+  "success": false,
+  "message": "Failed to fetch blood banks",
   "error": {
-    "message": "Failed to fetch blood banks",
-    "details": "..."
-  }
+    "code": "E010"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 
@@ -962,6 +1232,8 @@ curl -X POST http://localhost:3000/api/blood-banks \
 **Successful Response (201):**
 ```json
 {
+  "success": true,
+  "message": "Blood bank created successfully",
   "data": {
     "id": "d437cff0-cfa7-43ac-8e70-2be1e0c23a8a",
     "name": "Central Blood Bank",
@@ -971,16 +1243,32 @@ curl -X POST http://localhost:3000/api/blood-banks \
     "email": "central@bloodbank.com",
     "createdAt": "2026-02-08T19:25:12.497Z",
     "inventories": []
-  }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 
 **Error Response (409):**
 ```json
 {
+  "success": false,
+  "message": "A blood bank with this email already exists",
   "error": {
-    "message": "A blood bank with this email already exists"
-  }
+    "code": "E007"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "message": "Field 'name' is required",
+  "error": {
+    "code": "E002"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 
@@ -1014,27 +1302,32 @@ curl -X GET "http://localhost:3000/api/donors?bloodType=A+&city=Mumbai&page=1&li
 **Successful Response (200):**
 ```json
 {
-  "data": [
-    {
-      "id": "2448ae0e-007a-4b7c-854e-0a421652171a",
-      "name": "Rajesh Kumar",
-      "email": "rajesh@example.com",
-      "phone": "9123456789",
-      "bloodType": "A+",
-      "dateOfBirth": "2000-05-15T00:00:00.000Z",
-      "address": "456 Hope Street",
-      "city": "Mumbai",
-      "lastDonated": null,
-      "isActive": true,
-      "createdAt": "2026-02-08T19:25:17.450Z"
+  "success": true,
+  "message": "Donors fetched successfully",
+  "data": {
+    "data": [
+      {
+        "id": "2448ae0e-007a-4b7c-854e-0a421652171a",
+        "name": "Rajesh Kumar",
+        "email": "rajesh@example.com",
+        "phone": "9123456789",
+        "bloodType": "A+",
+        "dateOfBirth": "2000-05-15T00:00:00.000Z",
+        "address": "456 Hope Street",
+        "city": "Mumbai",
+        "lastDonated": null,
+        "isActive": true,
+        "createdAt": "2026-02-08T19:25:17.450Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "totalPages": 1
     }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 10,
-    "total": 1,
-    "totalPages": 1
-  }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 
@@ -1071,6 +1364,8 @@ curl -X POST http://localhost:3000/api/donors \
 **Successful Response (201):**
 ```json
 {
+  "success": true,
+  "message": "Donor created successfully",
   "data": {
     "id": "2448ae0e-007a-4b7c-854e-0a421652171a",
     "name": "Rajesh Kumar",
@@ -1083,16 +1378,20 @@ curl -X POST http://localhost:3000/api/donors \
     "lastDonated": null,
     "isActive": true,
     "createdAt": "2026-02-08T19:25:17.450Z"
-  }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 
 **Error Response (400):**
 ```json
 {
+  "success": false,
+  "message": "Field 'bloodType' is required",
   "error": {
-    "message": "Field 'bloodType' is required"
-  }
+    "code": "E002"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 
@@ -1152,17 +1451,55 @@ curl -X POST http://localhost:3000/api/blood-donation \
 }
 ```
 
+**Successful Response (201) - Full Format:**
+```json
+{
+  "success": true,
+  "message": "Donation processed successfully",
+  "data": {
+    "donation": {
+      "id": "52cf4b7e-21f5-4763-9ced-7a0d62d3e032",
+      "units": 2,
+      "status": "completed",
+      "notes": null,
+      "createdAt": "2026-02-08T19:25:38.404Z",
+      "donorId": "2448ae0e-007a-4b7c-854e-0a421652171a",
+      "bloodBankId": "d437cff0-cfa7-43ac-8e70-2be1e0c23a8a"
+    },
+    "inventory": {
+      "id": "96d2894b-2e1e-4ccc-99db-102f4657fbe0",
+      "bloodType": "A+",
+      "units": 2,
+      "minUnits": 10,
+      "expiryDate": null
+    },
+    "message": "Donation recorded successfully"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
 **Error Response (404):**
 ```json
 {
-  "error": "Donor with ID {donorId} not found"
+  "success": false,
+  "message": "Donor or blood bank not found",
+  "error": {
+    "code": "E005"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 
 **Error Response (400):**
 ```json
 {
-  "error": "Blood type mismatch. Donor blood type is A+, but B+ was specified"
+  "success": false,
+  "message": "Blood type mismatch. Donor blood type is A+, but B+ was specified",
+  "error": {
+    "code": "E009"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
 }
 ```
 

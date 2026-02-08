@@ -1,8 +1,9 @@
 import { Prisma } from "@prisma/client";
-import { NextResponse } from "next/server";
 
-import { jsonError, parsePagination, safeJson } from "@/lib/api";
+import { parsePagination, safeJson } from "@/lib/api";
 import prisma from "@/lib/prisma";
+import { sendSuccess, sendError } from "@/lib/responseHandler";
+import { ERROR_CODES } from "@/lib/errorCodes";
 
 const bloodBankSelect = {
   id: true,
@@ -56,23 +57,33 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    return NextResponse.json({
-      data: bloodBanks,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
+    return sendSuccess(
+      {
+        data: bloodBanks,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
+        },
       },
-    });
+      "Blood banks fetched successfully"
+    );
   } catch (err) {
-    return jsonError("Failed to fetch blood banks", 500, err);
+    return sendError(
+      "Failed to fetch blood banks",
+      ERROR_CODES.DATABASE_ERROR,
+      500,
+      err
+    );
   }
 }
 
 export async function POST(req: Request) {
   const parsed = await safeJson(req);
-  if (!parsed.ok) return jsonError("Invalid JSON body", 400);
+  if (!parsed.ok) {
+    return sendError("Invalid JSON body", ERROR_CODES.VALIDATION_ERROR, 400);
+  }
 
   const body = parsed.data as Record<string, unknown>;
   const name = body.name;
@@ -82,19 +93,39 @@ export async function POST(req: Request) {
   const email = body.email;
 
   if (typeof name !== "string" || name.trim().length === 0) {
-    return jsonError("Field 'name' is required", 400);
+    return sendError(
+      "Field 'name' is required",
+      ERROR_CODES.MISSING_FIELD,
+      400
+    );
   }
   if (typeof address !== "string" || address.trim().length === 0) {
-    return jsonError("Field 'address' is required", 400);
+    return sendError(
+      "Field 'address' is required",
+      ERROR_CODES.MISSING_FIELD,
+      400
+    );
   }
   if (typeof city !== "string" || city.trim().length === 0) {
-    return jsonError("Field 'city' is required", 400);
+    return sendError(
+      "Field 'city' is required",
+      ERROR_CODES.MISSING_FIELD,
+      400
+    );
   }
   if (typeof contactNo !== "string" || contactNo.trim().length === 0) {
-    return jsonError("Field 'contactNo' is required", 400);
+    return sendError(
+      "Field 'contactNo' is required",
+      ERROR_CODES.MISSING_FIELD,
+      400
+    );
   }
   if (typeof email !== "string" || email.trim().length === 0) {
-    return jsonError("Field 'email' is required", 400);
+    return sendError(
+      "Field 'email' is required",
+      ERROR_CODES.MISSING_FIELD,
+      400
+    );
   }
 
   try {
@@ -109,11 +140,28 @@ export async function POST(req: Request) {
       select: bloodBankSelect,
     });
 
-    return NextResponse.json({ data: bloodBank }, { status: 201 });
+    return sendSuccess(
+      bloodBank,
+      "Blood bank created successfully",
+      201
+    );
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return jsonError("A blood bank with this email already exists", 409, err);
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return sendError(
+        "A blood bank with this email already exists",
+        ERROR_CODES.DUPLICATE_EMAIL,
+        409,
+        err
+      );
     }
-    return jsonError("Failed to create blood bank", 500, err);
+    return sendError(
+      "Failed to create blood bank",
+      ERROR_CODES.DATABASE_ERROR,
+      500,
+      err
+    );
   }
 }
