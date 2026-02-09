@@ -16,29 +16,153 @@ This platform ensures fast access, fresh data, and scalable infrastructure, espe
 
 ---
 
-## ✅ Assessment Status
+## ✅ Assessment Completion Status
 
-**RESTful API Route Design Assessment: COMPLETED** ✓
+All **5 Assessments** have been successfully completed and implemented!
 
-Completion Date: 9 February 2026
+### 1. RESTful API Route Design ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
 
-**What was completed:**
-- ✅ Implemented RESTful API routes under `/src/app/api/` following REST conventions
-- ✅ Designed endpoints for blood banks, donors, and blood donations with proper HTTP methods
-- ✅ Implemented pagination (page, limit, totalPages) and filtering (bloodType, city, isActive)
-- ✅ Created atomic transactions for multi-step operations (blood donation with inventory updates)
-- ✅ Implemented input validation and proper HTTP status codes (400, 404, 409, 500)
-- ✅ Created centralized utilities: `api.ts` (pagination, error handling), `prismaSelect.ts` (reusable selects), `prisma.ts` (singleton client)
-- ✅ Comprehensive testing: All endpoints tested and verified working
-- ✅ Complete documentation with examples, error handling, and REST design reflection
-- ✅ Verification report confirming no compilation errors and all tests passing
+**Implemented:**
+- ✅ Blood banks CRUD endpoints (`/api/blood-banks`)
+- ✅ Donors CRUD endpoints (`/api/donors`)
+- ✅ Blood donations endpoints (`/api/blood-donation`)
+- ✅ Pagination with `page`, `limit`, `totalPages`
+- ✅ Filtering support (bloodType, city, isActive)
+- ✅ Atomic transactions for multi-step operations
+- ✅ Proper HTTP status codes (400, 404, 409, 500)
+- ✅ Comprehensive error handling
 
-**Verification Report:**
-See [VERIFICATION-REPORT.md](VERIFICATION-REPORT.md) for complete test results and implementation details.
+**Files:** `/src/app/api/blood-banks/route.ts`, `/src/app/api/donors/route.ts`, `/src/app/api/blood-donation/route.ts`
 
-**Next Steps:**
-- Record 1-2 minute video demo showing API functionality
-- Create PR with video link for final submission
+---
+
+### 2. Global API Response Handler ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
+
+**Implemented:**
+- ✅ Centralized `sendSuccess()` response utility
+- ✅ Centralized `sendError()` response utility
+- ✅ Standardized response format across all endpoints
+- ✅ Global error code mapping (E001-E012)
+- ✅ Consistent error response structure
+- ✅ Integrated with all existing endpoints
+
+**Files:** `/src/lib/responseHandler.ts`, `/src/lib/errorCodes.ts`
+
+**Response Format:**
+```json
+{
+  "success": true/false,
+  "message": "...",
+  "data": {...},
+  "error": {"code": "E001"},
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+---
+
+### 3. Input Validation with Zod ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
+
+**Implemented:**
+- ✅ Blood bank schema validation
+- ✅ Donor schema validation
+- ✅ Blood donation schema validation
+- ✅ Auth (signup/login) schema validation
+- ✅ Type-safe validation with Zod
+- ✅ Integrated validation error handling
+- ✅ Custom error messages for each field
+
+**Files:** 
+- `/src/lib/schemas/bloodBankSchema.ts`
+- `/src/lib/schemas/donorSchema.ts`
+- `/src/lib/schemas/bloodDonationSchema.ts`
+- `/src/lib/schemas/authSchema.ts`
+- `/src/lib/validationUtils.ts`
+
+---
+
+### 4. Authentication APIs (Signup/Login) ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
+
+**Implemented:**
+- ✅ `/api/auth/signup` - User registration with bcrypt password hashing
+- ✅ `/api/auth/login` - User authentication with JWT token generation
+- ✅ Password hashing with bcrypt (10 salt rounds for security)
+- ✅ JWT token generation and verification using jose
+- ✅ 24-hour token expiry
+- ✅ Bearer token extraction and validation
+- ✅ Error codes: E102 (invalid credentials), E103 (missing token), E104 (expired token)
+
+**Files:**
+- `/src/app/api/auth/signup/route.ts`
+- `/src/app/api/auth/login/route.ts`
+- `/src/lib/jwtUtils.ts`
+
+**Key Features:**
+- Secure password hashing (passwords never stored plain text)
+- JWT-based stateless sessions
+- Token verification in protected routes
+- Automatic user info attachment to requests
+
+---
+
+### 5. Authorization Middleware (Role-Based Access Control) ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
+
+**Implemented:**
+- ✅ Comprehensive authorization middleware in `src/middleware.ts`
+- ✅ JWT token validation for all API routes
+- ✅ Role-based access control (RBAC) enforcement
+- ✅ Support for 3 user roles: DONOR, HOSPITAL, ADMIN
+- ✅ Protected `/api/admin` route (ADMIN only)
+- ✅ Protected `/api/users` route (all authenticated users)
+- ✅ Bearer token extraction and verification
+- ✅ User info attachment to request headers (x-user-id, x-user-email, x-user-role)
+- ✅ Error code E105 for insufficient permissions
+
+**Files:**
+- `/src/middleware.ts` - Main authorization middleware
+- `/src/app/api/admin/route.ts` - Admin-only endpoint
+
+**Route Configuration:**
+```typescript
+/api/admin          → ["ADMIN"]
+/api/admin/users    → ["ADMIN"]
+/api/admin/reports  → ["ADMIN"]
+/api/users          → ["DONOR", "ADMIN", "HOSPITAL"]
+```
+
+**Public Routes (No Auth Required):**
+- `/` - Home page
+- `/login` - Login page
+- `/api/auth/signup` - User registration
+- `/api/auth/login` - User authentication
+- `/api/test` - Health check
+
+---
+
+## 🔒 Security Features Implemented
+
+✅ **Password Security:** bcrypt hashing with 10 salt rounds  
+✅ **Session Security:** JWT tokens with 24-hour expiry  
+✅ **Authorization:** Role-based access control across all routes  
+✅ **Token Validation:** Bearer token extraction and signature verification  
+✅ **Least Privilege:** Users get minimum necessary permissions based on role  
+✅ **Error Handling:** Secure error messages without exposing system details  
+✅ **Input Validation:** Zod schemas for all user inputs  
+
+---
+
+## 📚 Complete Documentation Sections
+
+- [RESTful API Design](#restful-api-design--overview) - REST conventions, endpoints, pagination
+- [Global API Response Handler](#global-api-response-handler) - Response format, error codes
+- [Input Validation with Zod](#input-validation-with-zod) - Schema definitions, validation examples
+- [Authentication APIs (Signup/Login)](#-authentication-apis-signup--login) - User registration, JWT tokens
+- [Authorization Middleware (RBAC)](#-authorization-middleware-role-based-access-control) - Role-based access, testing
 
 ---
 
@@ -1969,20 +2093,452 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5" | jq '.data[0
 
 ---
 
-## 📝 Summary of Implemented Endpoints
+## � Authorization Middleware (Role-Based Access Control)
 
-| Method | Route | Purpose | Status |
-|--------|-------|---------|--------|
-| GET | `/api/blood-banks` | List all blood banks with pagination | ✅ Working |
-| POST | `/api/blood-banks` | Create new blood bank | ✅ Working |
-| GET | `/api/donors` | List all donors with filters | ✅ Working |
-| POST | `/api/donors` | Create new donor | ✅ Working |
-| POST | `/api/blood-donation` | Record donation with transaction | ✅ Working |
-| GET | `/api/users` | List all users | ✅ Working |
-| POST | `/api/users` | Create new user | ⚠️ Basic |
-| POST | `/api/messages` | Create message | ⚠️ Pending |
-| GET | `/api/notifications` | List notifications | ⚠️ Pending |
-| POST | `/api/reports` | Create report | ⚠️ Pending |
+RedConnect implements comprehensive authorization middleware to enforce role-based access control (RBAC) across all API routes. This ensures that users can only perform actions their role permits, following the principle of **least privilege**.
+
+### Authentication vs Authorization
+
+| Concept | Acronym | Definition | Example |
+|---------|---------|-----------|---------|
+| **Authentication** | AuthN | Verifying who the user is | User logs in with email/password |
+| **Authorization** | AuthZ | Determining what user can do | Only admins can access /api/admin |
+
+While authentication answers "Who are you?", authorization answers "What are you allowed to do?"
+
+### User Roles in RedConnect
+
+We've defined three core roles in the system:
+
+| Role | Description | Permissions |
+|------|-------------|-------------|
+| **DONOR** | Regular blood donor | Can view user list, manage own profile |
+| **HOSPITAL** | Blood bank/hospital | Can manage blood inventory, view donors |
+| **ADMIN** | System administrator | Full access to all routes, user management |
+
+### Middleware Architecture
+
+**File:** `src/middleware.ts`
+
+The middleware intercepts all incoming requests and:
+
+1. **Identifies protected routes** - Routes requiring authentication/authorization
+2. **Extracts JWT token** - From `Authorization: Bearer <token>` header
+3. **Validates token** - Using `jose` library to verify JWT signature and expiry
+4. **Checks user role** - Maps current route to required roles
+5. **Enforces access** - Grants or denies access based on role match
+
+**Request Flow Diagram:**
+```
+Incoming Request
+    ↓
+Is route public? → YES → Allow request ✓
+    ↓ NO
+Extract JWT Token from header
+    ↓
+Token exists? → NO → Return 401 (E103) ✗
+    ↓ YES
+Verify JWT signature & expiry
+    ↓
+Token valid? → NO → Return 403 (E104) ✗
+    ↓ YES
+Extract user role from token payload
+    ↓
+Route requires specific roles?
+    ↓ YES
+User role matches required roles? → NO → Return 403 (E105) ✗
+    ↓ YES
+Attach user info to headers
+    ↓
+Allow request ✓
+```
+
+### Protected Routes Configuration
+
+The middleware defines which roles can access which routes:
+
+```typescript
+const ROLE_BASED_ROUTES: Record<string, string[]> = {
+  "/api/admin": ["ADMIN"],                          // Admin only
+  "/api/admin/users": ["ADMIN"],                    // Admin only
+  "/api/admin/reports": ["ADMIN"],                  // Admin only
+  "/api/users": ["DONOR", "ADMIN", "HOSPITAL"],    // All authenticated users
+};
+```
+
+### Public Routes
+
+The following routes **do not require authentication**:
+
+- `/` - Home page
+- `/login` - Login page
+- `/api/auth/signup` - User registration
+- `/api/auth/login` - User authentication
+- `/api/test` - Health check endpoint
+
+### Protected API Endpoints
+
+#### 1. Admin Dashboard
+
+**Endpoint:** `GET /api/admin`
+
+**Access:** ADMIN only
+
+**Request:**
+```bash
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer <ADMIN_JWT_TOKEN>"
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Admin access granted",
+  "data": {
+    "message": "Welcome to Admin Dashboard",
+    "accessLevel": "Full administrative access",
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "admin@example.com",
+      "role": "ADMIN"
+    },
+    "availableActions": [
+      "View all users",
+      "Delete users",
+      "View reports",
+      "Manage blood banks",
+      "View system analytics"
+    ]
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Access Denied Response (403):**
+```json
+{
+  "success": false,
+  "message": "Access denied. Required role: ADMIN",
+  "error": {
+    "code": "E105"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+#### 2. User List (Protected)
+
+**Endpoint:** `GET /api/users`
+
+**Access:** DONOR, HOSPITAL, ADMIN
+
+**Request with JWT:**
+```bash
+# Get token from login endpoint first
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}' | jq -r '.data.token')
+
+# Use token to access protected route
+curl -X GET http://localhost:3000/api/users \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Users fetched successfully",
+  "data": {
+    "data": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Alice Johnson",
+        "email": "alice@example.com",
+        "role": "DONOR",
+        "createdAt": "2026-02-09T10:30:45.123Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "totalPages": 1
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+### Error Codes for Authorization
+
+| Code | Status | Message | When |
+|------|--------|---------|------|
+| **E103** | 401 | Authorization token required | Missing Authorization header |
+| **E104** | 403 | Invalid or expired token | JWT verification failed |
+| **E105** | 403 | Access denied - insufficient permissions | User role doesn't match required roles |
+
+### Testing Authorization Scenarios
+
+#### Scenario 1: Admin Access Allowed
+
+```bash
+# 1. Login as admin
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"adminpass123"}' \
+  | jq -r '.data.token' > /tmp/admin_token.txt
+
+# 2. Access admin route
+ADMIN_TOKEN=$(cat /tmp/admin_token.txt)
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  | jq '.success, .message'
+
+# Expected: true, "Admin access granted"
+```
+
+#### Scenario 2: User Access Denied to Admin Route
+
+```bash
+# 1. Login as regular donor
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"donor@example.com","password":"donorpass123"}' \
+  | jq -r '.data.token' > /tmp/donor_token.txt
+
+# 2. Try to access admin route
+DONOR_TOKEN=$(cat /tmp/donor_token.txt)
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer $DONOR_TOKEN" \
+  | jq '.success, .error.code'
+
+# Expected: false, "E105" (Access denied)
+```
+
+#### Scenario 3: Missing Token
+
+```bash
+# Try to access protected route without token
+curl -X GET http://localhost:3000/api/users \
+  | jq '.error.code, .message'
+
+# Expected: "E103", "Authorization token required"
+```
+
+#### Scenario 4: Expired Token
+
+```bash
+# Use an old/expired JWT token
+EXPIRED_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImV4cCI6MTcwMDAwMDAwMH0.invalid"
+
+curl -X GET http://localhost:3000/api/users \
+  -H "Authorization: Bearer $EXPIRED_TOKEN" \
+  | jq '.error.code, .message'
+
+# Expected: "E104", "Invalid or expired token"
+```
+
+### How Middleware Works: Step-by-Step
+
+1. **Token Extraction:**
+   - Middleware reads `Authorization` header
+   - Removes "Bearer " prefix to get raw JWT token
+
+2. **Route Matching:**
+   - Checks if current pathname requires authorization
+   - Looks up required roles for that route
+
+3. **Token Verification:**
+   - Uses jose library to verify JWT signature
+   - Validates token hasn't expired
+   - Decodes payload containing user info (id, email, role)
+
+4. **Role Validation:**
+   - Extracts user's role from decoded token
+   - Checks if role is in required roles array
+   - Denies access if role not authorized
+
+5. **Header Injection:**
+   - Attaches user info to request headers
+   - Makes available to downstream route handlers via:
+     - `x-user-id`
+     - `x-user-email`
+     - `x-user-role`
+
+### Principle of Least Privilege
+
+**Definition:** Users should have the minimum permissions necessary to perform their job.
+
+**Implementation in RedConnect:**
+
+- **DONOR role:** Can only view public data, doesn't get admin access
+- **HOSPITAL role:** Can manage blood inventory, doesn't get full admin access
+- **ADMIN role:** Only assign to trusted administrators
+
+**Future Extension Example:** Adding MODERATOR role
+
+```typescript
+// In src/middleware.ts
+const ROLE_BASED_ROUTES: Record<string, string[]> = {
+  "/api/admin": ["ADMIN"],
+  "/api/reports": ["ADMIN", "MODERATOR"],  // NEW
+  "/api/users": ["DONOR", "ADMIN", "HOSPITAL", "MODERATOR"],  // NEW
+};
+```
+
+### Why Role-Based Middleware Matters
+
+✅ **Security:** Prevents unauthorized users from accessing sensitive data
+✅ **Scalability:** Easy to add new roles and routes
+✅ **Consistency:** Single place to define authorization rules
+✅ **Maintainability:** Changes propagate to all routes
+✅ **Auditability:** Clear log of what access was granted/denied
+
+---
+
+## 📝 Complete API Endpoint Summary
+
+### Blood Management Endpoints
+
+| Method | Route | Purpose | Auth Required | Status |
+|--------|-------|---------|---------------|--------|
+| GET | `/api/blood-banks` | List all blood banks with pagination | ❌ No | ✅ LIVE |
+| POST | `/api/blood-banks` | Create new blood bank | ❌ No | ✅ LIVE |
+| GET | `/api/blood-banks/[id]` | Get blood bank by ID | ❌ No | ✅ LIVE |
+| PATCH | `/api/blood-banks/[id]` | Update blood bank | ❌ No | ✅ LIVE |
+| DELETE | `/api/blood-banks/[id]` | Delete blood bank | ❌ No | ✅ LIVE |
+
+### Donor Management Endpoints
+
+| Method | Route | Purpose | Auth Required | Status |
+|--------|-------|---------|---------------|--------|
+| GET | `/api/donors` | List all donors with filters | ❌ No | ✅ LIVE |
+| POST | `/api/donors` | Create new donor | ❌ No | ✅ LIVE |
+| GET | `/api/donors/[id]` | Get donor by ID | ❌ No | ✅ LIVE |
+| PATCH | `/api/donors/[id]` | Update donor | ❌ No | ✅ LIVE |
+| DELETE | `/api/donors/[id]` | Delete donor | ❌ No | ✅ LIVE |
+
+### Blood Donation Endpoints
+
+| Method | Route | Purpose | Auth Required | Status |
+|--------|-------|---------|---------------|--------|
+| POST | `/api/blood-donation` | Record new donation | ❌ No | ✅ LIVE |
+| GET | `/api/blood-donation` | List all donations | ❌ No | ✅ LIVE |
+
+### Authentication Endpoints
+
+| Method | Route | Purpose | Auth Required | Status |
+|--------|-------|---------|---------------|--------|
+| POST | `/api/auth/signup` | User registration with password hashing | ❌ No | ✅ LIVE |
+| POST | `/api/auth/login` | User authentication with JWT token | ❌ No | ✅ LIVE |
+
+### User Management Endpoints
+
+| Method | Route | Purpose | Auth Required | Required Role | Status |
+|--------|-------|---------|---------------|---------------|--------|
+| GET | `/api/users` | List all users | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| POST | `/api/users` | Create new user | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| GET | `/api/users/[id]` | Get user by ID | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| PATCH | `/api/users/[id]` | Update user | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| DELETE | `/api/users/[id]` | Delete user | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+
+### Admin Endpoints
+
+| Method | Route | Purpose | Auth Required | Required Role | Status |
+|--------|-------|---------|---------------|---------------|--------|
+| GET | `/api/admin` | Admin dashboard | ✅ Yes | ADMIN | ✅ LIVE |
+| GET | `/api/admin/users` | View all users (admin) | ✅ Yes | ADMIN | ⏳ Planned |
+| GET | `/api/admin/reports` | View system reports | ✅ Yes | ADMIN | ⏳ Planned |
+
+### Utility Endpoints
+
+| Method | Route | Purpose | Auth Required | Status |
+|--------|-------|---------|---------------|--------|
+| GET | `/api/test` | Health check endpoint | ❌ No | ✅ LIVE |
+
+---
+
+## 🎯 Key Implementation Highlights
+
+### Data Validation
+- ✅ All inputs validated using Zod schemas
+- ✅ Type-safe validation with TypeScript integration
+- ✅ Custom error messages for each validation failure
+- ✅ Comprehensive error responses
+
+### Security
+- ✅ Bcrypt password hashing (10 salt rounds)
+- ✅ JWT token-based authentication
+- ✅ Role-based access control (RBAC)
+- ✅ Bearer token validation
+- ✅ Protected routes with middleware
+
+### API Design
+- ✅ RESTful endpoint structure
+- ✅ Proper HTTP status codes
+- ✅ Pagination support (page, limit, totalPages)
+- ✅ Filtering capabilities (bloodType, city, isActive)
+- ✅ Atomic transactions for complex operations
+
+### Response Format
+- ✅ Standardized success/error responses
+- ✅ Consistent error code mapping
+- ✅ Timestamp in all responses
+- ✅ Metadata for paginated results
+
+---
+
+## 🚀 Getting Started
+
+### 1. Setup Environment Variables
+
+Create `.env.local`:
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/redconnect"
+JWT_SECRET="your-super-secret-key-change-in-production"
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Setup Database
+```bash
+npx prisma db push
+npx prisma db seed
+```
+
+### 4. Run Development Server
+```bash
+npm run dev
+```
+
+Server runs on `http://localhost:3000`
+
+---
+
+## 📖 Documentation Index
+
+- **[RESTful API Design](#restful-api-design--overview)** - REST conventions, CRUD operations
+- **[Global Response Handler](#global-api-response-handler)** - Response format, error codes
+- **[Input Validation](#input-validation-with-zod)** - Schema validation with Zod
+- **[Authentication](#-authentication-apis-signup--login)** - Signup, login, JWT tokens
+- **[Authorization](#-authorization-middleware-role-based-access-control)** - RBAC, protected routes
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License.
+
+---
+
+**Last Updated:** 9 February 2026  
+**Version:** 1.0.0 (All 5 Assessments Complete)
+
 
 
 
