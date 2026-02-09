@@ -1714,7 +1714,350 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5" | jq '.data[0
 
 ---
 
-## 📝 Summary of Implemented Endpoints
+## � Authentication APIs (Signup / Login)
+
+RedConnect implements secure user authentication using **bcrypt** for password hashing and **JWT (JSON Web Token)** for session management. This ensures that user credentials are protected even if the database is compromised, and sessions are verifiable without storing state on the server.
+
+### Authentication vs Authorization
+
+| Concept | Definition | Example |
+|---------|-----------|---------|
+| **Authentication** | Verifying who the user is | User logs in with email/password |
+| **Authorization** | Determining what user can do | Only admins can access /api/admin |
+
+This lesson focuses on **authentication** — securely verifying user identity using bcrypt and JWT.
+
+### Signup Endpoint
+
+**POST /api/auth/signup**
+
+Registers a new user with secure password hashing using bcrypt (10 salt rounds).
+
+**Request Body:**
+```json
+{
+  "name": "Alice Johnson",
+  "email": "alice@example.com",
+  "password": "securepassword123",
+  "role": "DONOR"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "message": "Registration successful",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "role": "DONOR",
+    "createdAt": "2026-02-09T10:30:45.123Z"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Validation Response (400):**
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "code": "E001",
+    "details": {
+      "errors": [
+        {
+          "field": "password",
+          "message": "Password must be at least 6 characters long"
+        }
+      ]
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Duplicate Email Response (409):**
+```json
+{
+  "success": false,
+  "message": "A user with this email already exists",
+  "error": {
+    "code": "E007"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**curl Example:**
+```bash
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "password": "securepassword123",
+    "role": "DONOR"
+  }'
+```
+
+### Login Endpoint
+
+**POST /api/auth/login**
+
+Authenticates user credentials and returns a JWT token for accessing protected routes. Token expires after 24 hours by default.
+
+**Request Body:**
+```json
+{
+  "email": "alice@example.com",
+  "password": "securepassword123"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NTQ0MCIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS5jb20iLCJyb2xlIjoiRE9OT1IiLCJpYXQiOjE3NDQzNzYwMDB9.signature",
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Alice Johnson",
+      "email": "alice@example.com",
+      "role": "DONOR"
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Invalid Credentials Response (401):**
+```json
+{
+  "success": false,
+  "message": "Invalid credentials",
+  "error": {
+    "code": "E102"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**curl Example:**
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alice@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+### Protected Route Example
+
+**GET /api/users**
+
+Lists all users. Requires valid JWT token in Authorization header.
+
+**Request with Token:**
+```bash
+# Save token from login response first
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU1MCIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS5jb20ifQ.signature"
+
+curl -X GET http://localhost:3000/api/users \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Users fetched successfully",
+  "data": {
+    "data": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Alice Johnson",
+        "email": "alice@example.com",
+        "role": "DONOR",
+        "createdAt": "2026-02-09T10:30:45.123Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "totalPages": 1
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Missing Token Response (401):**
+```json
+{
+  "success": false,
+  "message": "Authorization token required",
+  "error": {
+    "code": "E103"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Expired Token Response (403):**
+```json
+{
+  "success": false,
+  "message": "Invalid or expired token",
+  "error": {
+    "code": "E104"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+### Implementation Details
+
+#### Password Hashing with bcrypt
+
+**Why bcrypt?**
+- Automatically generates random salt (10 rounds in our implementation)
+- Computationally expensive — slows down brute-force attacks
+- Even if database is leaked, passwords remain unreadable
+
+**How it works:**
+```typescript
+// Hashing (in signup)
+const hashedPassword = await bcrypt.hash(password, 10);
+// Output: $2b$10$N9qo8uLOickgx2ZMRZoMyeIjxGFlYKIJvN2OvU7o0c4J2YmXL82.K
+
+// Verification (in login)
+const isValid = await bcrypt.compare(inputPassword, hashedPassword);
+// Returns: true or false
+```
+
+#### JWT Token Generation
+
+**Token Structure:**
+```
+header.payload.signature
+```
+
+**Payload contains:**
+```json
+{
+  "id": "user-id-uuid",
+  "email": "user@example.com",
+  "role": "DONOR",
+  "iat": 1744376000,
+  "exp": 1744462400
+}
+```
+
+Where:
+- `iat` — Issued At timestamp
+- `exp` — Expiration timestamp (24 hours from issue)
+
+**Verification:** Token can only be verified with the secret key. If tampered, verification fails.
+
+### Authentication Flow Diagram
+
+```
+▼
+User Signup
+    ├─ POST /api/auth/signup
+    ├─ Validate (name, email, password, role)
+    ├─ Hash password with bcrypt
+    └─ Store in database
+    
+User Login
+    ├─ POST /api/auth/login
+    ├─ Find user by email
+    ├─ Compare hashed password with bcrypt
+    ├─ Generate JWT token
+    └─ Return token + user info
+    
+Access Protected Route
+    ├─ POST /api/users with Authorization: Bearer <token>
+    ├─ Extract token from header
+    ├─ Verify signature + expiration
+    ├─ Decode payload (user id, email, role)
+    └─ Proceed with request
+```
+
+### Security Best Practices
+
+1. **Never log passwords** — bcrypt ensures passwords are never plain text
+2. **Use HTTPS in production** — Protect token transmission
+3. **Store tokens securely**:
+   - Cookies (httpOnly, Secure flags) — Preferred for SPA
+   - localStorage — Less secure but works for SPAs
+   - Session storage — Clears on tab close
+4. **Token expiry** — Set reasonable expiry (1-24 hours)
+5. **Refresh tokens** — Implement refresh mechanism for long-lived sessions
+6. **Environment variables** — Keep JWT_SECRET in .env (never commit)
+
+### Environment Setup
+
+Add to `.env.local`:
+```env
+JWT_SECRET=your-super-secret-key-change-in-production
+JWT_EXPIRY=24h
+```
+
+**Never commit `.env` files with secrets to git!**
+
+### Complete Authentication Flow Test
+
+```bash
+# 1. Signup new user
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Bob Smith",
+    "email": "bob@example.com",
+    "password": "bobsecure123",
+    "role": "DONOR"
+  }' | jq '.data.id'
+
+# 2. Login (get token)
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "bob@example.com",
+    "password": "bobsecure123"
+  }' | jq -r '.data.token')
+
+echo "Token: $TOKEN"
+
+# 3. Access protected route with token
+curl -X GET http://localhost:3000/api/users \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" | jq '.data.data | length'
+
+# 4. Try accessing without token (should fail)
+curl -X GET http://localhost:3000/api/users | jq '.error.code'
+# Should return: "E103" (token missing)
+```
+
+### New Error Codes for Authentication
+
+| Code | Description | HTTP Status |
+|------|-------------|-------------|
+| E102 | Invalid credentials (wrong email/password) | 401 |
+| E103 | Authorization token required | 401 |
+| E104 | Invalid or expired token | 403 |
+
+---
+
+## �📝 Summary of Implemented Endpoints
 
 | Method | Route | Purpose | Status |
 |--------|-------|---------|--------|
