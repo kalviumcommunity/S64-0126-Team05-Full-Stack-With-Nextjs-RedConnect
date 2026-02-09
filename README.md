@@ -330,6 +330,78 @@ curl -X POST http://localhost:3000/api/files \
 
 ---
 
+### 9. Email Service Integration with AWS SES ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
+
+**Implemented:**
+- ✅ SES email API endpoint with HTML support
+- ✅ Validation for recipients, subject, and template/message
+- ✅ Reusable HTML template (`welcomeTemplate`)
+- ✅ Structured logs with SES message ID
+
+**Files:**
+- `/src/app/api/email/route.ts` — SES email API
+- `/src/lib/schemas/emailSchema.ts` — request validation
+- `/src/lib/emailTemplates.ts` — HTML templates
+
+**Email Flow**
+```mermaid
+flowchart LR
+  "Client" --> "POST /api/email"
+  "POST /api/email" --> "Validate payload"
+  "Validate payload" --> "Build HTML"
+  "Build HTML" --> "Send via SES"
+  "Send via SES" --> "Return MessageId"
+```
+
+**API Example: Send Email**
+```bash
+curl -X POST http://localhost:3000/api/email \
+  -H "Content-Type: application/json" \
+  -d '{"to":"student@example.com","subject":"Welcome!","template":"welcome","userName":"Aditi"}'
+```
+
+**Response**
+```json
+{
+  "success": true,
+  "message": "Email sent successfully",
+  "data": {
+    "messageId": "01010189b2example123"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Example Log**
+```
+Email sent { messageId: "01010189b2example123", to: "student@example.com", subject: "Welcome!" }
+```
+
+**Template Example**
+```ts
+export const welcomeTemplate = (userName: string) => `
+  <h2>Welcome to TrustMail, ${userName}!</h2>
+  <p>We’re thrilled to have you onboard.</p>
+`;
+```
+
+**Sandbox vs Production**
+- SES sandbox allows sending only to verified addresses.
+- Move to production by requesting SES production access and verifying domain.
+
+**Rate Limits & Bounce Handling**
+- SES enforces sending quotas; use retry/backoff or a queue for spikes.
+- Monitor bounces/complaints in SES and configure notifications (SNS).
+- Configure SPF/DKIM for trusted sender authentication.
+
+**Reflection**
+- **Security:** Verified sender + short‑lived credentials reduce abuse risk.
+- **Reliability:** Logs + message IDs provide traceability.
+- **Compliance:** Bounce monitoring and SPF/DKIM improve deliverability and trust.
+
+---
+
 ## 🔒 Security Features Implemented
 
 ✅ **Password Security:** bcrypt hashing with 10 salt rounds  
@@ -3054,6 +3126,7 @@ AWS_ACCESS_KEY_ID="your-access-key"
 AWS_SECRET_ACCESS_KEY="your-secret-key"
 AWS_REGION="ap-south-1"
 AWS_BUCKET_NAME="your-bucket-name"
+SES_EMAIL_SENDER="no-reply@yourdomain.com"
 ```
 
 ### 2. Install Dependencies
