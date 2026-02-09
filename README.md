@@ -181,6 +181,83 @@ asyncHandler(async () => { ... }, "GET /route")
 
 ---
 
+### 7. Caching Layer with Redis ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
+
+**Implemented:**
+- ✅ Redis client setup using `ioredis`
+- ✅ Cache-aside pattern on all API **GET** routes
+- ✅ TTL policy (60 seconds default; 30 seconds for `/api/test`)
+- ✅ Cache invalidation on user creation/update/delete and donation updates
+- ✅ Safe fallback when Redis is unavailable
+
+**Files:**
+- `/src/lib/redis.ts` — Redis client + safe helpers
+- `/src/lib/cacheKeys.ts` — cache key + pattern helpers
+- `/src/app/api/users/route.ts` — cache-aside logic with TTL
+- `/src/app/api/users/[id]/route.ts` — invalidation on update/delete
+- `/src/app/api/auth/signup/route.ts` — invalidation on signup
+- `/src/app/api/donors/route.ts` — cache-aside + invalidation
+- `/src/app/api/blood-banks/route.ts` — cache-aside + invalidation
+- `/src/app/api/blood-donation/route.ts` — cache-aside + invalidation
+- `/src/app/api/admin/route.ts` — cache-aside (per-user)
+- `/src/app/api/test/route.ts` — cache-aside (short TTL)
+
+**Note:** `/api/test-error` intentionally remains uncached to preserve error testing behavior.
+
+**Redis Setup (Utility):**
+```ts
+// src/lib/redis.ts
+import Redis from "ioredis";
+
+const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+export default redis;
+```
+
+**Cache-Aside Example (GET /api/users):**
+```ts
+const cacheKey = usersListCacheKey(page, limit);
+const cachedData = await getCache(cacheKey);
+
+if (cachedData) {
+  return sendSuccess(JSON.parse(cachedData), "Users fetched successfully (cache)");
+}
+
+const payload = { data: users, meta: { page, limit, total, totalPages } };
+await setCache(cacheKey, JSON.stringify(payload), 60);
+return sendSuccess(payload, "Users fetched successfully");
+```
+
+**TTL Policy**
+- **60 seconds** for most GET routes
+- **30 seconds** for `/api/test`
+- Keys are page/limit/filter aware where applicable
+- Keys are page/limit aware (`users:list:p{page}:l{limit}`)
+
+**Cache Invalidation Strategy**
+- `users:list:*`, `users:detail:*`, `test:users` invalidated on:
+  - `POST /api/auth/signup`
+  - `POST /api/users`
+  - `PATCH /api/users/[id]`
+  - `DELETE /api/users/[id]`
+- `donations:list:*`, `blood-banks:list:*`, `donors:list:*` invalidated on:
+  - `POST /api/blood-donation`
+
+**Evidence of Latency Improvement (Verify via Logs)**
+Sample logs to observe after hitting the route twice:
+```
+Users cache miss { cacheKey: "users:list:p1:l10" }
+Users cache hit { cacheKey: "users:list:p1:l10" }
+```
+Typical observation: first request hits DB, second request returns from cache within TTL.
+
+**Reflection**
+- **Cache coherence risk:** stale data if invalidation is missed.
+- **TTL trade-off:** shorter TTL improves freshness, longer TTL improves performance.
+- **When caching can be counterproductive:** highly personalized or rapidly changing data, where invalidation overhead outweighs benefits.
+
+---
+
 ## 🔒 Security Features Implemented
 
 ✅ **Password Security:** bcrypt hashing with 10 salt rounds  
@@ -2900,6 +2977,7 @@ Create `.env.local`:
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/redconnect"
 JWT_SECRET="your-super-secret-key-change-in-production"
+REDIS_URL="redis://localhost:6379"
 ```
 
 ### 2. Install Dependencies
@@ -2940,8 +3018,4 @@ This project is licensed under the MIT License.
 
 **Last Updated:** 9 February 2026  
 **Version:** 1.0.0 (All 5 Assessments Complete)
-
-
-
-
 

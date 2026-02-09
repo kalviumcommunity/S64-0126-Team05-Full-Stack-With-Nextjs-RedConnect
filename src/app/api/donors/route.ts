@@ -8,6 +8,12 @@ import { sendSuccess, sendError } from "@/lib/responseHandler";
 import { ERROR_CODES } from "@/lib/errorCodes";
 import { donorCreateSchema } from "@/lib/schemas/donorSchema";
 import { sendValidationError } from "@/lib/validationUtils";
+import { getCache, setCache, deleteByPattern } from "@/lib/redis";
+import {
+  donorsListCacheKey,
+  DONORS_LIST_CACHE_PATTERN,
+} from "@/lib/cacheKeys";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: Request) {
   const { page, limit, skip, take } = parsePagination(req);
@@ -17,6 +23,20 @@ export async function GET(req: Request) {
   const isActive = searchParams.get("isActive")?.trim();
 
   try {
+    const cacheKey = donorsListCacheKey({
+      page,
+      limit,
+      bloodType,
+      city,
+      isActive,
+    });
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      logger.info("Donors cache hit", { cacheKey });
+      return sendSuccess(JSON.parse(cachedData), "Donors fetched successfully (cache)");
+    }
+    logger.info("Donors cache miss", { cacheKey });
+
     const where: Prisma.DonorWhereInput = {};
 
     if (bloodType) {
@@ -42,18 +62,19 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    return sendSuccess(
-      {
-        data: donors,
-        meta: {
-          page,
-          limit,
-          total,
-          totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
-        },
+    const payload = {
+      data: donors,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
       },
-      "Donors fetched successfully"
-    );
+    };
+
+    await setCache(cacheKey, JSON.stringify(payload), 60);
+
+    return sendSuccess(payload, "Donors fetched successfully");
   } catch (err) {
     return sendError(
       "Failed to fetch donors",
@@ -88,6 +109,7 @@ export async function POST(req: Request) {
       select: donorSelect,
     });
 
+    await deleteByPattern(DONORS_LIST_CACHE_PATTERN);
     return sendSuccess(donor, "Donor created successfully", 201);
   } catch (err) {
     // Handle Zod validation errors
