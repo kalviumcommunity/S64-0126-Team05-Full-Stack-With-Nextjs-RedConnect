@@ -258,6 +258,78 @@ Typical observation: first request hits DB, second request returns from cache wi
 
 ---
 
+### 8. File Upload API with AWS S3 (Pre-Signed URLs) ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
+
+**Implemented:**
+- ✅ Pre-signed URL generation for direct uploads to S3
+- ✅ File type and size validation before issuing URL
+- ✅ Database record creation for uploaded files
+- ✅ Short-lived upload URLs (60 seconds)
+
+**Files:**
+- `/src/app/api/upload/route.ts` — pre-signed URL API
+- `/src/app/api/files/route.ts` — file metadata storage API
+- `/src/lib/schemas/fileUploadSchema.ts` — validation rules
+- `/prisma/schema.prisma` — `FileUpload` model
+
+**Upload Flow (Pre-Signed URL)**
+```mermaid
+flowchart LR
+  "Client" --> "POST /api/upload"
+  "POST /api/upload" --> "Validate Type/Size"
+  "Validate Type/Size" --> "Generate Signed URL"
+  "Generate Signed URL" --> "Client"
+  "Client" --> "PUT to S3 URL"
+  "PUT to S3 URL" --> "POST /api/files"
+  "POST /api/files" --> "Save metadata in DB"
+```
+
+**API Example: Generate Upload URL**
+```bash
+curl -X POST http://localhost:3000/api/upload \
+  -H "Content-Type: application/json" \
+  -d '{"filename":"report.pdf","fileType":"application/pdf","fileSize":120000}'
+```
+
+**Response**
+```json
+{
+  "success": true,
+  "message": "Pre-signed upload URL generated",
+  "data": {
+    "uploadURL": "https://...",
+    "fileURL": "https://<bucket>.s3.<region>.amazonaws.com/uploads/...",
+    "key": "uploads/...",
+    "expiresIn": 60
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**API Example: Store File Metadata**
+```bash
+curl -X POST http://localhost:3000/api/files \
+  -H "Content-Type: application/json" \
+  -d '{"fileName":"report.pdf","fileURL":"https://...","fileSize":120000,"fileType":"application/pdf"}'
+```
+
+**Validation Rules**
+- Allowed types: `image/*` and `application/pdf`
+- Max size: **5 MB**
+- URL expiry: **60 seconds**
+
+**Security & Lifecycle Notes**
+- Use private buckets by default; only expose public URLs if needed.
+- Keep pre-signed URL expiry short to reduce misuse.
+- Configure S3 lifecycle rules to archive or delete old uploads.
+
+**Reflection**
+- **Public vs private trade-off:** public URLs are simple but less secure; private URLs require signed access for reads.
+- **Lifecycle policies reduce cost:** auto-expire stale files and keep storage lean.
+
+---
+
 ## 🔒 Security Features Implemented
 
 ✅ **Password Security:** bcrypt hashing with 10 salt rounds  
@@ -2978,6 +3050,10 @@ Create `.env.local`:
 DATABASE_URL="postgresql://user:password@localhost:5432/redconnect"
 JWT_SECRET="your-super-secret-key-change-in-production"
 REDIS_URL="redis://localhost:6379"
+AWS_ACCESS_KEY_ID="your-access-key"
+AWS_SECRET_ACCESS_KEY="your-secret-key"
+AWS_REGION="ap-south-1"
+AWS_BUCKET_NAME="your-bucket-name"
 ```
 
 ### 2. Install Dependencies
@@ -3018,4 +3094,3 @@ This project is licensed under the MIT License.
 
 **Last Updated:** 9 February 2026  
 **Version:** 1.0.0 (All 5 Assessments Complete)
-

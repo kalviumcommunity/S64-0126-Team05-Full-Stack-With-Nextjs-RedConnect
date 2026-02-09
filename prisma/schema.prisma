@@ -118,6 +118,19 @@ model Donation {
   @@index([createdAt])
 }
 
+model FileUpload {
+  id          String   @id @default(uuid())
+  name        String
+  url         String
+  size        Int
+  contentType String
+  uploaderId  String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([uploaderId])
+}
+
 enum Role {
   DONOR
   HOSPITAL
