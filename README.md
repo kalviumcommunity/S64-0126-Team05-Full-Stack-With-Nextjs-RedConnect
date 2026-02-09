@@ -1137,6 +1137,325 @@ async function fetchDonors(page: number) {
 
 ---
 
+## ✅ Input Validation with Zod
+
+All API endpoints use **Zod schemas** for runtime validation, ensuring type-safe input handling and consistent error messages. This provides defense-in-depth protection against invalid data while maintaining excellent developer experience.
+
+### Why Zod for Validation?
+
+1. **Type Safety**: Zod infers TypeScript types automatically, eliminating type duplication
+2. **Runtime Validation**: Catch errors at the API boundary before database operations
+3. **Composable Schemas**: Reuse common validation patterns across endpoints
+4. **Clear Error Messages**: Custom error messages for each validation rule
+5. **Complex Validation**: Support for conditional logic, transformations, and refinements
+
+### Validation Architecture
+
+```
+API Request
+    ↓
+Zod Schema Validation
+    ├─ Field-level validation (regex, min/max length, format)
+    ├─ Type coercion & transformation
+    └─ Custom refinements (age checks, enum validation)
+    ↓
+If valid → Business Logic & Database
+If invalid → sendValidationError() → Standardized 400 Response
+```
+
+### Implemented Schemas
+
+#### 1. Blood Bank Schema (`/src/lib/schemas/bloodBankSchema.ts`)
+
+Validates creation and updates of blood bank records.
+
+**Validation Rules:**
+- `name`: 2-100 characters, required
+- `address`: 5-200 characters, required
+- `city`: 2-100 characters, required
+- `contactNo`: Valid phone format (7-15 digits with + - space), required
+- `email`: Valid email format, max 100 chars, required and unique
+
+**Example Valid Request:**
+```json
+{
+  "name": "City Blood Bank",
+  "address": "123 Medical Center Drive",
+  "city": "New York",
+  "contactNo": "+1-555-0123",
+  "email": "contact@cityblood.com"
+}
+```
+
+**Example Invalid Request (missing field):**
+```json
+{
+  "name": "BC"
+}
+```
+
+**Response (400):**
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "code": "E001",
+    "details": {
+      "errors": [
+        {
+          "field": "name",
+          "message": "Blood bank name must be at least 2 characters long"
+        },
+        {
+          "field": "address",
+          "message": "Invalid input: expected string, received undefined"
+        },
+        {
+          "field": "city",
+          "message": "Invalid input: expected string, received undefined"
+        },
+        {
+          "field": "contactNo",
+          "message": "Invalid input: expected string, received undefined"
+        },
+        {
+          "field": "email",
+          "message": "Invalid input: expected string, received undefined"
+        }
+      ],
+      "summary": "5 validation error(s)"
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+#### 2. Donor Schema (`/src/lib/schemas/donorSchema.ts`)
+
+Validates donor registration with comprehensive health & safety checks.
+
+**Validation Rules:**
+- `name`: 2-100 characters, required
+- `email`: Valid email format, max 100 chars, required and unique
+- `phone`: Valid phone format (7-15 digits), required
+- `bloodType`: Enum (A+, A-, B+, B-, AB+, AB-, O+, O-), required
+- `dateOfBirth`: YYYY-MM-DD format, must be >= 18 years old, required
+- `address`: 5-200 characters, required
+- `city`: 2-100 characters, required
+
+**Key Features:**
+- Custom age validation: Ensures donors are at least 18 years old
+- Blood type enum constraint: Only valid blood types accepted
+- Phone format validation: Supports international formats
+
+**Example Valid Request (with age check):**
+```json
+{
+  "name": "Jane Smith",
+  "email": "jane@example.com",
+  "phone": "+1-555-0200",
+  "bloodType": "O+",
+  "dateOfBirth": "1995-08-20",
+  "address": "456 Oak Avenue",
+  "city": "San Francisco"
+}
+```
+
+**Example Invalid Request (minor trying to donate):**
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+1-555-0100",
+  "bloodType": "A+",
+  "dateOfBirth": "2010-05-15",
+  "address": "123 Main Street",
+  "city": "Boston"
+}
+```
+
+**Response (400) - Age validation failure:**
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "code": "E001",
+    "details": {
+      "errors": [
+        {
+          "field": "dateOfBirth",
+          "message": "Donor must be at least 18 years old (YYYY-MM-DD format)"
+        }
+      ],
+      "summary": "1 validation error(s)"
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+#### 3. Blood Donation Schema (`/src/lib/schemas/bloodDonationSchema.ts`)
+
+Validates blood donation records with inventory management.
+
+**Validation Rules:**
+- `donorId`: Valid UUID format, required
+- `bloodBankId`: Valid UUID format, required
+- `units`: Positive number, max 5 units per donation, required
+- `bloodType`: Enum (A+, A-, B+, B-, AB+, AB-, O+, O-), required
+- `notes`: Optional, max 500 characters
+
+**Example Valid Request:**
+```json
+{
+  "donorId": "81ea37ba-9262-4d33-8a57-1f8acc4277e6",
+  "bloodBankId": "3d407b08-d057-4641-8d19-0d390018ac36",
+  "units": 2,
+  "bloodType": "O+",
+  "notes": "Regular donation"
+}
+```
+
+**Example Invalid Request (units exceed limit):**
+```json
+{
+  "donorId": "81ea37ba-9262-4d33-8a57-1f8acc4277e6",
+  "bloodBankId": "3d407b08-d057-4641-8d19-0d390018ac36",
+  "units": 10,
+  "bloodType": "O+"
+}
+```
+
+**Response (400):**
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "code": "E001",
+    "details": {
+      "errors": [
+        {
+          "field": "units",
+          "message": "Units cannot exceed 5 per donation"
+        }
+      ],
+      "summary": "1 validation error(s)"
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+### Validation Error Response Format
+
+All validation errors return **400 Bad Request** with consistent structure:
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "code": "E001",
+    "details": {
+      "errors": [
+        {
+          "field": "fieldName",
+          "message": "Specific validation error message"
+        }
+      ],
+      "summary": "N validation error(s)"
+    }
+  },
+  "timestamp": "ISO 8601 timestamp"
+}
+```
+
+### Validation Implementation Details
+
+**File Structure:**
+```
+src/lib/
+├── schemas/
+│   ├── bloodBankSchema.ts      # Blood bank validation rules
+│   ├── donorSchema.ts           # Donor validation rules
+│   └── bloodDonationSchema.ts   # Donation validation rules
+├── validationUtils.ts           # Zod error parsing helper
+└── responseHandler.ts           # Global response format
+```
+
+**Flow in API Routes:**
+
+```typescript
+// Example from /api/blood-banks/route.ts
+export async function POST(req: Request) {
+  const parsed = await safeJson(req);
+  if (!parsed.ok) return jsonError("Invalid JSON body", 400);
+
+  try {
+    // ✓ Validate input with Zod schema
+    const validatedData = bloodBankCreateSchema.parse(parsed.data);
+    
+    // ✓ Create database record with validated data
+    const bloodBank = await prisma.bloodBank.create({
+      data: validatedData,
+      select: bloodBankSelect,
+    });
+
+    return sendSuccess(bloodBank, "Blood bank created successfully", 201);
+  } catch (err) {
+    // ✓ Catch validation errors and return consistent format
+    if (err instanceof ZodError) {
+      return sendValidationError(err);
+    }
+    
+    // ✓ Handle specific database errors
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return sendError("Email already exists", ERROR_CODES.DUPLICATE_EMAIL, 409, err);
+    }
+    
+    return sendError("Failed to create blood bank", ERROR_CODES.DATABASE_ERROR, 500, err);
+  }
+}
+```
+
+### Benefits of This Validation Approach
+
+1. **Single Source of Truth**: Schema defines validation logic + TypeScript types
+2. **Reusable Schemas**: Schemas exported for client-side validation
+3. **Clear Error Messages**: Custom messages per validation rule
+4. **Composable Validation**: Combine simple rules into complex validators
+5. **Production Safe**: All invalid data caught before database operations
+6. **DX Friendly**: TypeScript autocomplete for validated data
+
+### Testing Validation with curl
+
+```bash
+# Test missing fields
+curl -X POST http://localhost:3000/api/blood-banks \
+  -H "Content-Type: application/json" \
+  -d '{"name":"AB"}'
+
+# Test invalid email
+curl -X POST http://localhost:3000/api/donors \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John","email":"invalid-email","phone":"+1-555-0100","bloodType":"A+","dateOfBirth":"1995-01-01","address":"123 Main","city":"NYC"}'
+
+# Test age validation
+curl -X POST http://localhost:3000/api/donors \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Minor","email":"minor@test.com","phone":"+1-555-0100","bloodType":"A+","dateOfBirth":"2015-01-01","address":"123 Main","city":"NYC"}'
+
+# Test units limit
+curl -X POST http://localhost:3000/api/blood-donation \
+  -H "Content-Type: application/json" \
+  -d '{"donorId":"81ea37ba-9262-4d33-8a57-1f8acc4277e6","bloodBankId":"3d407b08-d057-4641-8d19-0d390018ac36","units":10,"bloodType":"O+"}'
+```
+
+---
+
 ### Core Endpoints
 
 #### 1. GET /api/blood-banks - List All Blood Banks

@@ -1,17 +1,20 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { jsonError, safeJson } from "@/lib/api";
 import prisma from "@/lib/prisma";
 import { userSafeSelect } from "@/lib/prismaSelect";
 
+// UUID v4 validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function parseId(raw: string) {
-  const id = Number.parseInt(raw, 10);
-  return Number.isFinite(id) && id > 0 ? id : null;
+  return UUID_REGEX.test(raw) ? raw : null;
 }
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const id = parseId(params.id);
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const id = parseId(resolvedParams.id);
   if (id === null) return jsonError("Invalid 'id' parameter", 400);
 
   try {
@@ -23,8 +26,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const id = parseId(params.id);
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const id = parseId(resolvedParams.id);
   if (id === null) return jsonError("Invalid 'id' parameter", 400);
 
   const parsed = await safeJson(req);
@@ -45,7 +49,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (typeof name === "string") data.name = name.trim();
   if (typeof email === "string") data.email = email.trim().toLowerCase();
   if (typeof password === "string") data.password = password;
-  if (typeof role === "string") data.role = role.trim();
+  if (typeof role === "string" && Object.values(Role).includes(role as Role)) {
+    data.role = role as Role;
+  }
 
   if (Object.keys(data).length === 0) return jsonError("No updatable fields provided", 400);
 
@@ -67,8 +73,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const id = parseId(params.id);
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const id = parseId(resolvedParams.id);
   if (id === null) return jsonError("Invalid 'id' parameter", 400);
 
   try {

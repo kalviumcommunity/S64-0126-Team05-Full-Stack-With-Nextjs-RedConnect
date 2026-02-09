@@ -1,66 +1,53 @@
 import { NextRequest } from 'next/server';
+import { ZodError } from 'zod';
 import prisma from '@/lib/prisma';
 import { sendSuccess, sendError } from '@/lib/responseHandler';
 import { ERROR_CODES } from '@/lib/errorCodes';
+import { bloodDonationCreateSchema } from '@/lib/schemas/bloodDonationSchema';
+import { sendValidationError } from '@/lib/validationUtils';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { donorId, bloodBankId, units, bloodType, notes } = body;
-
-    // Validate required fields
-    if (!donorId || !bloodBankId || !units || !bloodType) {
-      return sendError(
-        "Missing required fields: donorId, bloodBankId, units, bloodType",
-        ERROR_CODES.MISSING_FIELD,
-        400
-      );
-    }
-
-    // Validate units
-    if (units <= 0) {
-      return sendError(
-        "Units must be a positive number",
-        ERROR_CODES.VALIDATION_ERROR,
-        400
-      );
-    }
+    
+    // Validate request body using Zod schema
+    const validatedData = bloodDonationCreateSchema.parse(body);
 
     // Use Prisma transaction to ensure atomicity and rollback on error
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await prisma.$transaction(async (tx: any) => {
       // 1. Verify donor exists
       const donor = await tx.donor.findUnique({
-        where: { id: donorId },
+        where: { id: validatedData.donorId },
       });
 
       if (!donor) {
-        throw new Error(`Donor with ID ${donorId} not found`);
+        throw new Error(`Donor with ID ${validatedData.donorId} not found`);
       }
 
       // 2. Verify blood bank exists
       const bloodBank = await tx.bloodBank.findUnique({
-        where: { id: bloodBankId },
+        where: { id: validatedData.bloodBankId },
       });
 
       if (!bloodBank) {
-        throw new Error(`Blood Bank with ID ${bloodBankId} not found`);
+        throw new Error(`Blood Bank with ID ${validatedData.bloodBankId} not found`);
       }
 
       // 3. Verify blood type matches
-      if (donor.bloodType !== bloodType) {
+      if (donor.bloodType !== validatedData.bloodType) {
         throw new Error(
-          `Blood type mismatch. Donor blood type is ${donor.bloodType}, but ${bloodType} was specified`
+          `Blood type mismatch. Donor blood type is ${donor.bloodType}, but ${validatedData.bloodType} was specified`
         );
       }
 
       // 4. Create donation record
       const donation = await tx.donation.create({
         data: {
-          donorId,
-          bloodBankId,
-          units,
-          notes: notes || null,
+          donorId: validatedData.donorId,
+          bloodBankId: validatedData.bloodBankId,
+          units: validatedData.units,
+          notes: validatedData.notes || null,
           status: 'completed',
         },
         include: {
@@ -86,26 +73,26 @@ export async function POST(request: NextRequest) {
       const inventory = await tx.bloodBankInventory.upsert({
         where: {
           bloodBankId_bloodType: {
-            bloodBankId,
-            bloodType,
+            bloodBankId: validatedData.bloodBankId,
+            bloodType: validatedData.bloodType,
           },
         },
         update: {
           units: {
-            increment: units,
+            increment: validatedData.units,
           },
         },
         create: {
-          bloodBankId,
-          bloodType,
-          units,
+          bloodBankId: validatedData.bloodBankId,
+          bloodType: validatedData.bloodType,
+          units: validatedData.units,
           minUnits: 10,
         },
       });
 
       // 6. Update donor's last donated date
       await tx.donor.update({
-        where: { id: donorId },
+        where: { id: validatedData.donorId },
         data: {
           lastDonated: new Date(),
         },
@@ -123,8 +110,14 @@ export async function POST(request: NextRequest) {
       "Donation processed successfully",
       201
     );
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('Blood donation error:', error);
+
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return sendValidationError(error);
+    }
+
     const err = error as Error & { code?: string; meta?: { cause?: string } };
 
     // Check if it's a known validation error

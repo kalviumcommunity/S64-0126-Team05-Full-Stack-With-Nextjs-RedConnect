@@ -20,33 +20,22 @@ export const donorSelect = {
   createdAt: true,
 } as const;
 
-export const messageSelect = {
+export const bloodBankSelect = {
   id: true,
-  content: true,
+  name: true,
+  address: true,
+  city: true,
+  contactNo: true,
+  email: true,
   createdAt: true,
-  senderId: true,
-  receiverId: true,
-  sender: { select: userSafeSelect },
-  receiver: { select: userSafeSelect },
 } as const;
 
-export const reportSelect = {
+export const donationSelect = {
   id: true,
-  title: true,
-  description: true,
+  units: true,
   status: true,
-  category: true,
+  notes: true,
   createdAt: true,
-  userId: true,
-  user: { select: userSafeSelect },
+  donorId: true,
+  bloodBankId: true,
 } as const;
-
-export const notificationSelect = {
-  id: true,
-  message: true,
-  isRead: true,
-  createdAt: true,
-  userId: true,
-  user: { select: userSafeSelect },
-} as const;
-

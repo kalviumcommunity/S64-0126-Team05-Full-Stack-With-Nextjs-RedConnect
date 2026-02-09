@@ -56,18 +56,26 @@ export const sendError = (
   code: string = "INTERNAL_ERROR",
   status: number = 500,
   details?: unknown
-): NextResponse<ErrorResponse> => {
-  const errorResponse: ErrorResponse = {
+): NextResponse => {
+  type ErrorResponseWithDetails = ErrorResponse & {
+    error: {
+      code: string;
+      details?: Record<string, unknown>;
+    };
+  };
+
+  const errorResponse: ErrorResponseWithDetails = {
     success: false,
     message,
     error: {
       code,
-      ...(process.env.NODE_ENV === "development" && details && {
-        details: details instanceof Error ? { message: details.message } : (details as Record<string, unknown>),
-      }),
     },
     timestamp: new Date().toISOString(),
   };
+
+  if (process.env.NODE_ENV === "development" && details) {
+    errorResponse.error.details = details instanceof Error ? { message: details.message } : (details as Record<string, unknown>);
+  }
 
   return NextResponse.json(errorResponse, { status });
 };
