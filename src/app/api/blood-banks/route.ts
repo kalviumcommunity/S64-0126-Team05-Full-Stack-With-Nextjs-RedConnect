@@ -7,6 +7,12 @@ import { sendSuccess, sendError } from "@/lib/responseHandler";
 import { ERROR_CODES } from "@/lib/errorCodes";
 import { bloodBankCreateSchema } from "@/lib/schemas/bloodBankSchema";
 import { sendValidationError } from "@/lib/validationUtils";
+import { getCache, setCache, deleteByPattern } from "@/lib/redis";
+import {
+  bloodBanksListCacheKey,
+  BLOOD_BANKS_LIST_CACHE_PATTERN,
+} from "@/lib/cacheKeys";
+import { logger } from "@/lib/logger";
 
 const bloodBankSelect = {
   id: true,
@@ -34,6 +40,19 @@ export async function GET(req: Request) {
   const bloodType = searchParams.get("bloodType")?.trim();
 
   try {
+    const cacheKey = bloodBanksListCacheKey({
+      page,
+      limit,
+      city,
+      bloodType,
+    });
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      logger.info("Blood banks cache hit", { cacheKey });
+      return sendSuccess(JSON.parse(cachedData), "Blood banks fetched successfully (cache)");
+    }
+    logger.info("Blood banks cache miss", { cacheKey });
+
     const where: Prisma.BloodBankWhereInput = {};
 
     if (city) {
@@ -60,18 +79,19 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    return sendSuccess(
-      {
-        data: bloodBanks,
-        meta: {
-          page,
-          limit,
-          total,
-          totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
-        },
+    const payload = {
+      data: bloodBanks,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
       },
-      "Blood banks fetched successfully"
-    );
+    };
+
+    await setCache(cacheKey, JSON.stringify(payload), 60);
+
+    return sendSuccess(payload, "Blood banks fetched successfully");
   } catch (err) {
     return sendError(
       "Failed to fetch blood banks",
@@ -104,11 +124,8 @@ export async function POST(req: Request) {
       select: bloodBankSelect,
     });
 
-    return sendSuccess(
-      bloodBank,
-      "Blood bank created successfully",
-      201
-    );
+    await deleteByPattern(BLOOD_BANKS_LIST_CACHE_PATTERN);
+    return sendSuccess(bloodBank, "Blood bank created successfully", 201);
   } catch (err) {
     // Handle Zod validation errors
     if (err instanceof ZodError) {
