@@ -1,10 +1,13 @@
 import { Prisma } from "@prisma/client";
+import { ZodError } from "zod";
 
 import { parsePagination, safeJson } from "@/lib/api";
 import prisma from "@/lib/prisma";
 import { donorSelect } from "@/lib/prismaSelect";
 import { sendSuccess, sendError } from "@/lib/responseHandler";
 import { ERROR_CODES } from "@/lib/errorCodes";
+import { donorCreateSchema } from "@/lib/schemas/donorSchema";
+import { sendValidationError } from "@/lib/validationUtils";
 
 export async function GET(req: Request) {
   const { page, limit, skip, take } = parsePagination(req);
@@ -67,81 +70,32 @@ export async function POST(req: Request) {
     return sendError("Invalid JSON body", ERROR_CODES.VALIDATION_ERROR, 400);
   }
 
-  const body = parsed.data as Record<string, unknown>;
-  const name = body.name;
-  const email = body.email;
-  const phone = body.phone;
-  const bloodType = body.bloodType;
-  const dateOfBirth = body.dateOfBirth;
-  const address = body.address;
-  const city = body.city;
-
-  if (typeof name !== "string" || name.trim().length === 0) {
-    return sendError(
-      "Field 'name' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof email !== "string" || email.trim().length === 0) {
-    return sendError(
-      "Field 'email' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof phone !== "string" || phone.trim().length === 0) {
-    return sendError(
-      "Field 'phone' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof bloodType !== "string" || bloodType.trim().length === 0) {
-    return sendError(
-      "Field 'bloodType' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof dateOfBirth !== "string" || dateOfBirth.trim().length === 0) {
-    return sendError(
-      "Field 'dateOfBirth' is required (format: YYYY-MM-DD)",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof address !== "string" || address.trim().length === 0) {
-    return sendError(
-      "Field 'address' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof city !== "string" || city.trim().length === 0) {
-    return sendError(
-      "Field 'city' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-
   try {
+    // Validate request body using Zod schema
+    const validatedData = donorCreateSchema.parse(parsed.data);
+
+    // Create donor with validated data
     const donor = await prisma.donor.create({
       data: {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone.trim(),
-        bloodType: bloodType.trim().toUpperCase(),
-        dateOfBirth: new Date(dateOfBirth),
-        address: address.trim(),
-        city: city.trim(),
+        name: validatedData.name,
+        email: validatedData.email.toLowerCase(),
+        phone: validatedData.phone,
+        bloodType: validatedData.bloodType.toUpperCase(),
+        dateOfBirth: new Date(validatedData.dateOfBirth),
+        address: validatedData.address,
+        city: validatedData.city,
       },
       select: donorSelect,
     });
 
     return sendSuccess(donor, "Donor created successfully", 201);
   } catch (err) {
+    // Handle Zod validation errors
+    if (err instanceof ZodError) {
+      return sendValidationError(err);
+    }
+
+    // Handle database errors
     if (
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === "P2002"
@@ -153,14 +107,7 @@ export async function POST(req: Request) {
         err
       );
     }
-    if (err instanceof Error && err.message.includes("Invalid")) {
-      return sendError(
-        "Invalid date format for dateOfBirth (use YYYY-MM-DD)",
-        ERROR_CODES.INVALID_FORMAT,
-        400,
-        err
-      );
-    }
+
     return sendError(
       "Failed to create donor",
       ERROR_CODES.DATABASE_ERROR,

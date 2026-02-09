@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { jsonError, parsePagination, safeJson } from "@/lib/api";
@@ -57,12 +57,13 @@ export async function POST(req: Request) {
   }
 
   try {
+    const roleEnum = role && typeof role === "string" && Object.values(Role).includes(role as Role) ? (role as Role) : Role.DONOR;
     const user = await prisma.user.create({
       data: {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password,
-        role: typeof role === "string" && role.trim().length > 0 ? role.trim() : undefined,
+        role: roleEnum,
       },
       select: userSafeSelect,
     });

@@ -1,3 +1,7 @@
+import { PrismaClient, Role, RequestStatus } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
 async function main() {
   console.log("Seeding database...");
 
@@ -61,3 +65,13 @@ async function main() {
 
   console.log("🌱 Seed data inserted successfully");
 }
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

@@ -1,9 +1,12 @@
 import { Prisma } from "@prisma/client";
+import { ZodError } from "zod";
 
 import { parsePagination, safeJson } from "@/lib/api";
 import prisma from "@/lib/prisma";
 import { sendSuccess, sendError } from "@/lib/responseHandler";
 import { ERROR_CODES } from "@/lib/errorCodes";
+import { bloodBankCreateSchema } from "@/lib/schemas/bloodBankSchema";
+import { sendValidationError } from "@/lib/validationUtils";
 
 const bloodBankSelect = {
   id: true,
@@ -85,57 +88,18 @@ export async function POST(req: Request) {
     return sendError("Invalid JSON body", ERROR_CODES.VALIDATION_ERROR, 400);
   }
 
-  const body = parsed.data as Record<string, unknown>;
-  const name = body.name;
-  const address = body.address;
-  const city = body.city;
-  const contactNo = body.contactNo;
-  const email = body.email;
-
-  if (typeof name !== "string" || name.trim().length === 0) {
-    return sendError(
-      "Field 'name' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof address !== "string" || address.trim().length === 0) {
-    return sendError(
-      "Field 'address' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof city !== "string" || city.trim().length === 0) {
-    return sendError(
-      "Field 'city' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof contactNo !== "string" || contactNo.trim().length === 0) {
-    return sendError(
-      "Field 'contactNo' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-  if (typeof email !== "string" || email.trim().length === 0) {
-    return sendError(
-      "Field 'email' is required",
-      ERROR_CODES.MISSING_FIELD,
-      400
-    );
-  }
-
   try {
+    // Validate request body using Zod schema
+    const validatedData = bloodBankCreateSchema.parse(parsed.data);
+
+    // Create blood bank with validated data
     const bloodBank = await prisma.bloodBank.create({
       data: {
-        name: name.trim(),
-        address: address.trim(),
-        city: city.trim(),
-        contactNo: contactNo.trim(),
-        email: email.trim().toLowerCase(),
+        name: validatedData.name,
+        address: validatedData.address,
+        city: validatedData.city,
+        contactNo: validatedData.contactNo,
+        email: validatedData.email.toLowerCase(),
       },
       select: bloodBankSelect,
     });
@@ -146,6 +110,12 @@ export async function POST(req: Request) {
       201
     );
   } catch (err) {
+    // Handle Zod validation errors
+    if (err instanceof ZodError) {
+      return sendValidationError(err);
+    }
+
+    // Handle database errors
     if (
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === "P2002"
@@ -157,6 +127,7 @@ export async function POST(req: Request) {
         err
       );
     }
+
     return sendError(
       "Failed to create blood bank",
       ERROR_CODES.DATABASE_ERROR,
