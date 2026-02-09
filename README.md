@@ -1969,7 +1969,313 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5" | jq '.data[0
 
 ---
 
+## � Authorization Middleware (Role-Based Access Control)
+
+RedConnect implements comprehensive authorization middleware to enforce role-based access control (RBAC) across all API routes. This ensures that users can only perform actions their role permits, following the principle of **least privilege**.
+
+### Authentication vs Authorization
+
+| Concept | Acronym | Definition | Example |
+|---------|---------|-----------|---------|
+| **Authentication** | AuthN | Verifying who the user is | User logs in with email/password |
+| **Authorization** | AuthZ | Determining what user can do | Only admins can access /api/admin |
+
+While authentication answers "Who are you?", authorization answers "What are you allowed to do?"
+
+### User Roles in RedConnect
+
+We've defined three core roles in the system:
+
+| Role | Description | Permissions |
+|------|-------------|-------------|
+| **DONOR** | Regular blood donor | Can view user list, manage own profile |
+| **HOSPITAL** | Blood bank/hospital | Can manage blood inventory, view donors |
+| **ADMIN** | System administrator | Full access to all routes, user management |
+
+### Middleware Architecture
+
+**File:** `src/middleware.ts`
+
+The middleware intercepts all incoming requests and:
+
+1. **Identifies protected routes** - Routes requiring authentication/authorization
+2. **Extracts JWT token** - From `Authorization: Bearer <token>` header
+3. **Validates token** - Using `jose` library to verify JWT signature and expiry
+4. **Checks user role** - Maps current route to required roles
+5. **Enforces access** - Grants or denies access based on role match
+
+**Request Flow Diagram:**
+```
+Incoming Request
+    ↓
+Is route public? → YES → Allow request ✓
+    ↓ NO
+Extract JWT Token from header
+    ↓
+Token exists? → NO → Return 401 (E103) ✗
+    ↓ YES
+Verify JWT signature & expiry
+    ↓
+Token valid? → NO → Return 403 (E104) ✗
+    ↓ YES
+Extract user role from token payload
+    ↓
+Route requires specific roles?
+    ↓ YES
+User role matches required roles? → NO → Return 403 (E105) ✗
+    ↓ YES
+Attach user info to headers
+    ↓
+Allow request ✓
+```
+
+### Protected Routes Configuration
+
+The middleware defines which roles can access which routes:
+
+```typescript
+const ROLE_BASED_ROUTES: Record<string, string[]> = {
+  "/api/admin": ["ADMIN"],                          // Admin only
+  "/api/admin/users": ["ADMIN"],                    // Admin only
+  "/api/admin/reports": ["ADMIN"],                  // Admin only
+  "/api/users": ["DONOR", "ADMIN", "HOSPITAL"],    // All authenticated users
+};
+```
+
+### Public Routes
+
+The following routes **do not require authentication**:
+
+- `/` - Home page
+- `/login` - Login page
+- `/api/auth/signup` - User registration
+- `/api/auth/login` - User authentication
+- `/api/test` - Health check endpoint
+
+### Protected API Endpoints
+
+#### 1. Admin Dashboard
+
+**Endpoint:** `GET /api/admin`
+
+**Access:** ADMIN only
+
+**Request:**
+```bash
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer <ADMIN_JWT_TOKEN>"
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Admin access granted",
+  "data": {
+    "message": "Welcome to Admin Dashboard",
+    "accessLevel": "Full administrative access",
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "admin@example.com",
+      "role": "ADMIN"
+    },
+    "availableActions": [
+      "View all users",
+      "Delete users",
+      "View reports",
+      "Manage blood banks",
+      "View system analytics"
+    ]
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Access Denied Response (403):**
+```json
+{
+  "success": false,
+  "message": "Access denied. Required role: ADMIN",
+  "error": {
+    "code": "E105"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+#### 2. User List (Protected)
+
+**Endpoint:** `GET /api/users`
+
+**Access:** DONOR, HOSPITAL, ADMIN
+
+**Request with JWT:**
+```bash
+# Get token from login endpoint first
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}' | jq -r '.data.token')
+
+# Use token to access protected route
+curl -X GET http://localhost:3000/api/users \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Users fetched successfully",
+  "data": {
+    "data": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Alice Johnson",
+        "email": "alice@example.com",
+        "role": "DONOR",
+        "createdAt": "2026-02-09T10:30:45.123Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "totalPages": 1
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+### Error Codes for Authorization
+
+| Code | Status | Message | When |
+|------|--------|---------|------|
+| **E103** | 401 | Authorization token required | Missing Authorization header |
+| **E104** | 403 | Invalid or expired token | JWT verification failed |
+| **E105** | 403 | Access denied - insufficient permissions | User role doesn't match required roles |
+
+### Testing Authorization Scenarios
+
+#### Scenario 1: Admin Access Allowed
+
+```bash
+# 1. Login as admin
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"adminpass123"}' \
+  | jq -r '.data.token' > /tmp/admin_token.txt
+
+# 2. Access admin route
+ADMIN_TOKEN=$(cat /tmp/admin_token.txt)
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  | jq '.success, .message'
+
+# Expected: true, "Admin access granted"
+```
+
+#### Scenario 2: User Access Denied to Admin Route
+
+```bash
+# 1. Login as regular donor
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"donor@example.com","password":"donorpass123"}' \
+  | jq -r '.data.token' > /tmp/donor_token.txt
+
+# 2. Try to access admin route
+DONOR_TOKEN=$(cat /tmp/donor_token.txt)
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer $DONOR_TOKEN" \
+  | jq '.success, .error.code'
+
+# Expected: false, "E105" (Access denied)
+```
+
+#### Scenario 3: Missing Token
+
+```bash
+# Try to access protected route without token
+curl -X GET http://localhost:3000/api/users \
+  | jq '.error.code, .message'
+
+# Expected: "E103", "Authorization token required"
+```
+
+#### Scenario 4: Expired Token
+
+```bash
+# Use an old/expired JWT token
+EXPIRED_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMyIsImV4cCI6MTcwMDAwMDAwMH0.invalid"
+
+curl -X GET http://localhost:3000/api/users \
+  -H "Authorization: Bearer $EXPIRED_TOKEN" \
+  | jq '.error.code, .message'
+
+# Expected: "E104", "Invalid or expired token"
+```
+
+### How Middleware Works: Step-by-Step
+
+1. **Token Extraction:**
+   - Middleware reads `Authorization` header
+   - Removes "Bearer " prefix to get raw JWT token
+
+2. **Route Matching:**
+   - Checks if current pathname requires authorization
+   - Looks up required roles for that route
+
+3. **Token Verification:**
+   - Uses jose library to verify JWT signature
+   - Validates token hasn't expired
+   - Decodes payload containing user info (id, email, role)
+
+4. **Role Validation:**
+   - Extracts user's role from decoded token
+   - Checks if role is in required roles array
+   - Denies access if role not authorized
+
+5. **Header Injection:**
+   - Attaches user info to request headers
+   - Makes available to downstream route handlers via:
+     - `x-user-id`
+     - `x-user-email`
+     - `x-user-role`
+
+### Principle of Least Privilege
+
+**Definition:** Users should have the minimum permissions necessary to perform their job.
+
+**Implementation in RedConnect:**
+
+- **DONOR role:** Can only view public data, doesn't get admin access
+- **HOSPITAL role:** Can manage blood inventory, doesn't get full admin access
+- **ADMIN role:** Only assign to trusted administrators
+
+**Future Extension Example:** Adding MODERATOR role
+
+```typescript
+// In src/middleware.ts
+const ROLE_BASED_ROUTES: Record<string, string[]> = {
+  "/api/admin": ["ADMIN"],
+  "/api/reports": ["ADMIN", "MODERATOR"],  // NEW
+  "/api/users": ["DONOR", "ADMIN", "HOSPITAL", "MODERATOR"],  // NEW
+};
+```
+
+### Why Role-Based Middleware Matters
+
+✅ **Security:** Prevents unauthorized users from accessing sensitive data
+✅ **Scalability:** Easy to add new roles and routes
+✅ **Consistency:** Single place to define authorization rules
+✅ **Maintainability:** Changes propagate to all routes
+✅ **Auditability:** Clear log of what access was granted/denied
+
+---
+
 ## 📝 Summary of Implemented Endpoints
+
 
 | Method | Route | Purpose | Status |
 |--------|-------|---------|--------|
