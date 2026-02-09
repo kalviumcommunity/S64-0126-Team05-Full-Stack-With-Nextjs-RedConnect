@@ -43,7 +43,7 @@ All **5 Assessments** have been successfully completed and implemented!
 **Implemented:**
 - ✅ Centralized `sendSuccess()` response utility
 - ✅ Centralized `sendError()` response utility
-- ✅ Standardized response format across all endpoints
+- ✅ Standardized respo nse format across all endpoints
 - ✅ Global error code mapping (E001-E012)
 - ✅ Consistent error response structure
 - ✅ Integrated with all existing endpoints
@@ -144,6 +144,43 @@ All **5 Assessments** have been successfully completed and implemented!
 
 ---
 
+### 6. Error Handling Middleware ✅
+**Status:** COMPLETE | **Date:** 9 February 2026
+
+**Implemented:**
+- ✅ Centralized error handler (`handleError()`, `handleTypedError()`, `asyncHandler()`)
+- ✅ Structured logging utility with JSON format
+- ✅ Development vs production error response differentiation
+- ✅ Stack trace redaction in production
+- ✅ Full error logging for debugging (internal only)
+- ✅ Safe user-facing error messages
+- ✅ Error testing endpoint (`/api/test-error`)
+- ✅ Support for 7 error scenarios (database, validation, auth, etc.)
+- ✅ Comprehensive error classification system
+
+**Files:**
+- `/src/lib/logger.ts` - Structured logging utility
+- `/src/lib/errorHandler.ts` - Centralized error handler
+- `/src/app/api/test-error/route.ts` - Error testing endpoint
+
+**Key Features:**
+```typescript
+// Centralized error handling
+handleError(error, "GET /api/users")
+
+// Type-safe error handling
+handleTypedError({ message: "...", code: "E104", status: 401 })
+
+// Async wrapper (eliminates try-catch boilerplate)
+asyncHandler(async () => { ... }, "GET /route")
+```
+
+**Error Response Comparison:**
+- **Development:** Shows full error details + stack trace
+- **Production:** Shows generic message, logs full details internally
+
+---
+
 ## 🔒 Security Features Implemented
 
 ✅ **Password Security:** bcrypt hashing with 10 salt rounds  
@@ -153,6 +190,7 @@ All **5 Assessments** have been successfully completed and implemented!
 ✅ **Least Privilege:** Users get minimum necessary permissions based on role  
 ✅ **Error Handling:** Secure error messages without exposing system details  
 ✅ **Input Validation:** Zod schemas for all user inputs  
+✅ **Structured Logging:** JSON logging for debugging and monitoring  
 
 ---
 
@@ -163,6 +201,7 @@ All **5 Assessments** have been successfully completed and implemented!
 - [Input Validation with Zod](#input-validation-with-zod) - Schema definitions, validation examples
 - [Authentication APIs (Signup/Login)](#-authentication-apis-signup--login) - User registration, JWT tokens
 - [Authorization Middleware (RBAC)](#-authorization-middleware-role-based-access-control) - Role-based access, testing
+- [Error Handling Middleware](#-error-handling-middleware) - Centralized error handling, logging
 
 ---
 
@@ -2398,7 +2437,370 @@ const ROLE_BASED_ROUTES: Record<string, string[]> = {
 
 ---
 
+## �️ Error Handling Middleware
+
+RedConnect implements a centralized error handling system to ensure consistent, structured error logging while keeping production responses safe from exposing sensitive information.
+
+### Why Centralized Error Handling Matters
+
+Modern web applications fail in many ways — database timeouts, API errors, validation failures, authentication issues, etc. A centralized error handler ensures:
+
+| Benefit | Impact |
+|---------|--------|
+| **Consistency** | Every error follows the same response format |
+| **Security** | Stack traces and sensitive data hidden in production |
+| **Observability** | Structured logs for easier debugging and monitoring |
+| **Maintainability** | Single place to update error handling logic |
+
+### Error Handling Architecture
+
+**Files:**
+- `/src/lib/logger.ts` - Structured logging utility
+- `/src/lib/errorHandler.ts` - Centralized error handler functions
+- `/src/app/api/test-error/route.ts` - Error testing endpoint
+
+### 1. Structured Logger Utility
+
+**File:** `src/lib/logger.ts`
+
+Provides consistent, JSON-formatted logging across the application:
+
+```typescript
+export const logger = {
+  info: (message: string, meta?: LogMeta) => { ... },
+  warn: (message: string, meta?: LogMeta) => { ... },
+  error: (message: string, meta?: LogMeta, stack?: string) => { ... },
+  debug: (message: string, meta?: LogMeta) => { ... },
+};
+```
+
+**Log Format:**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "status": 500,
+    "message": "Database connection timeout"
+  },
+  "stack": "REDACTED or actual stack trace",
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+### 2. Centralized Error Handler
+
+**File:** `src/lib/errorHandler.ts`
+
+Provides reusable error handling functions:
+
+```typescript
+// Basic error handler
+export function handleError(
+  error: unknown,
+  context: string,
+  status: number = 500
+): NextResponse
+
+// Type-safe error handler for custom errors
+export function handleTypedError(appError: AppError): NextResponse
+
+// Async wrapper to eliminate repetitive try-catch
+export async function asyncHandler(
+  handler: () => Promise<NextResponse>,
+  context: string
+): Promise<NextResponse>
+```
+
+### 3. Development vs Production Error Responses
+
+**Key Difference:**
+
+| Scenario | Development | Production |
+|----------|-------------|-----------|
+| Stack Trace | ✅ Shown in response | 🔒 Logged only, not sent |
+| Error Details | ✅ Full message shown | 🔒 Generic message sent |
+| Debugging | ✅ Easy with full info | ✅ Logs available for team |
+| User Trust | - | ✅ Safe, minimal info |
+
+#### Development Mode Response:
+```bash
+NODE_ENV=development
+curl http://localhost:3000/api/test-error?type=database
+```
+
+**Response:**
+```json
+{
+  "success": false,
+  "message": "Database connection timeout after 30 seconds",
+  "error": {
+    "code": "E500",
+    "details": "Database connection timeout after 30 seconds"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Console Log:**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/test-error",
+  "meta": {
+    "status": 500,
+    "message": "Database connection timeout after 30 seconds",
+    "context": "GET /api/test-error"
+  },
+  "stack": "Error: Database connection timeout...\n    at Database.connect...",
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+#### Production Mode Response:
+```bash
+NODE_ENV=production
+curl http://localhost:3000/api/test-error?type=database
+```
+
+**Response (Safe, No Details):**
+```json
+{
+  "success": false,
+  "message": "Something went wrong. Please try again later.",
+  "error": {
+    "code": "E500"
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Console Log (Full Details Still Logged):**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/test-error",
+  "meta": {
+    "status": 500,
+    "message": "Database connection timeout after 30 seconds",
+    "context": "GET /api/test-error"
+  },
+  "stack": "REDACTED",
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+### 4. Error Testing Endpoint
+
+**Endpoint:** `GET /api/test-error`
+
+Test different error scenarios to see how the error handler responds:
+
+**Supported error types:**
+
+```bash
+# Generic error
+curl http://localhost:3000/api/test-error?type=generic
+
+# Database error
+curl http://localhost:3000/api/test-error?type=database
+
+# Validation error (400)
+curl http://localhost:3000/api/test-error?type=validation
+
+# Authentication error (401)
+curl http://localhost:3000/api/test-error?type=authentication
+
+# Authorization error (403)
+curl http://localhost:3000/api/test-error?type=authorization
+
+# Timeout error
+curl http://localhost:3000/api/test-error?type=timeout
+
+# Not found error (404)
+curl http://localhost:3000/api/test-error?type=notfound
+```
+
+### 5. Using Error Handler in Routes
+
+**Basic Usage:**
+```typescript
+import { handleError } from "@/lib/errorHandler";
+import { logger } from "@/lib/logger";
+
+export async function GET(req: Request) {
+  try {
+    logger.info("Fetching users");
+    const users = await db.user.findMany();
+    return sendSuccess(users);
+  } catch (error) {
+    return handleError(error, "GET /api/users");
+  }
+}
+```
+
+**Type-Safe Usage:**
+```typescript
+import { handleTypedError } from "@/lib/errorHandler";
+
+export async function POST(req: Request) {
+  try {
+    const data = await req.json();
+    
+    if (!data.email) {
+      return handleTypedError({
+        message: "Email is required",
+        code: "E002",
+        status: 400,
+        context: "POST /api/users",
+      });
+    }
+    
+    // ... rest of logic
+  } catch (error) {
+    return handleError(error, "POST /api/users");
+  }
+}
+```
+
+**Async Wrapper Usage (Cleanest):**
+```typescript
+import { asyncHandler } from "@/lib/errorHandler";
+
+export async function GET(req: Request) {
+  return asyncHandler(async () => {
+    logger.info("Fetching users");
+    const users = await db.user.findMany();
+    return sendSuccess(users);
+  }, "GET /api/users");
+}
+```
+
+### 6. Error Classification System
+
+RedConnect uses a hierarchical error classification:
+
+| Error Type | Status | Code Pattern | Example |
+|-----------|--------|--------------|---------|
+| Validation | 400 | E00x | E001, E002, E003 |
+| Authentication | 401 | E10x | E103, E104 |
+| Authorization | 403 | E10x | E105 |
+| Not Found | 404 | E00x | E004, E005, E006 |
+| Conflict/Duplicate | 409 | E00x | E007, E008, E009 |
+| Server Error | 500 | E5xx | E500, E501 |
+
+**Error Codes Reference:**
+- **E001-E003:** Validation errors (missing fields, invalid format)
+- **E004-E006:** Not found errors (resource doesn't exist)
+- **E007-E009:** Conflict errors (duplicates, mismatches)
+- **E010-E012:** Database errors
+- **E102:** Invalid credentials
+- **E103:** Token required
+- **E104:** Token invalid/expired
+- **E105:** Access denied (insufficient permissions)
+- **E500-E501:** Internal server errors
+
+### 7. How Error Handling Works: Step-by-Step
+
+```
+1. Route Handler Executes
+   ↓
+2. Error Occurs (thrown or caught)
+   ↓
+3. handleError() or handleTypedError() Called
+   ↓
+4. Logger.error() Records Full Details
+   ├─ In Dev: Includes full stack trace
+   └─ In Prod: Stack trace marked "REDACTED"
+   ↓
+5. Create Safe Response
+   ├─ In Dev: Shows actual error message
+   └─ In Prod: Shows generic "Something went wrong" message
+   ↓
+6. Return NextResponse (json) to Client
+```
+
+### 8. Debugging with Structured Logs
+
+**Finding Errors:**
+```bash
+# Search logs for all errors
+grep '"level":"error"' logs.json
+
+# Search for specific endpoint errors
+grep 'GET /api/users' logs.json | grep error
+
+# Search for specific error code
+grep 'E104' logs.json
+
+# Get errors from specific time range
+grep '2026-02-09' logs.json | grep error
+```
+
+**Log Analysis Example:**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "status": 500,
+    "code": "E500",
+    "message": "Query timeout: User.findMany() exceeded 10s timeout",
+    "context": "GET /api/users"
+  },
+  "stack": "Error: Query timeout...",
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Debugging Steps:**
+1. Look at timestamp to correlate with user reports
+2. Check error message for root cause
+3. Review stack trace (dev) or search logs (prod) for context
+4. Identify error code to categorize issue
+5. Update route handler or database query to fix
+
+### 9. Security Benefits
+
+✅ **No Stack Trace Leaks:** Production won't expose file paths, function names, or system details  
+✅ **Safe Error Messages:** Generic messages prevent attackers from learning system internals  
+✅ **Full Logging:** Developers still get complete information for debugging  
+✅ **Audit Trail:** All errors logged with timestamp for compliance  
+✅ **Environment-Aware:** Development and production have different behaviors  
+
+### 10. Future Extensions
+
+**Adding Custom Error Types:**
+```typescript
+class ValidationError extends Error {
+  constructor(public field: string, message: string) {
+    super(message);
+  }
+}
+
+// In error handler:
+if (error instanceof ValidationError) {
+  return handleTypedError({
+    message: `Validation error in field: ${error.field}`,
+    code: "E001",
+    status: 400,
+  });
+}
+```
+
+**Adding Error Tracking Service:**
+```typescript
+// Send errors to external service (e.g., Sentry, LogRocket)
+logger.error(message, meta, stack);
+if (isProd) {
+  sendToExternalTracker({ level: "error", message, meta });
+}
+```
+
+---
+
 ## 📝 Complete API Endpoint Summary
+
 
 ### Blood Management Endpoints
 
