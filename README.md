@@ -402,6 +402,88 @@ export const welcomeTemplate = (userName: string) => `
 
 ---
 
+### 10. Secure JWT & Session Management (Concept + Design Notes)
+**Status:** DOCUMENTED | **Date:** 10 February 2026
+
+This section documents a secure, production‑ready JWT + refresh token session strategy and how it maps to this project.
+
+**JWT Structure (Header / Payload / Signature)**
+```json
+{
+  "header": { "alg": "HS256", "typ": "JWT" },
+  "payload": { "userId": "12345", "exp": 1715120000, "role": "ADMIN" },
+  "signature": "hashed-verification-string"
+}
+```
+- **Header:** Algorithm + token type
+- **Payload:** Claims like user ID, role, and expiry
+- **Signature:** Verifies the token wasn’t tampered with
+
+**Access vs Refresh Tokens**
+- **Access Token:** short‑lived (e.g., 15 minutes), sent with API requests
+- **Refresh Token:** long‑lived (e.g., 7 days), used only to obtain a new access token
+
+**Recommended Token Flow**
+```mermaid
+sequenceDiagram
+  participant Client
+  participant Server
+  Client->>Server: Login (credentials)
+  Server-->>Client: Access Token + Refresh Token
+  Client->>Server: API request (Access Token)
+  Server-->>Client: 401 if expired
+  Client->>Server: Refresh (Refresh Token)
+  Server-->>Client: New Access Token (rotate refresh token)
+```
+
+**Secure Storage Choices**
+- **Access Token:** store in memory or short‑lived HTTP‑only cookie
+- **Refresh Token:** store in HTTP‑only, `SameSite=Strict` cookie to reduce XSS/CSRF risk
+
+Example cookie settings (server‑side):
+```ts
+res.cookie("refreshToken", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "Strict",
+});
+```
+
+**Token Expiry & Rotation**
+- Always validate access token on protected routes
+- If expired, verify refresh token, issue a new access token
+- Rotate refresh tokens on every use to reduce replay risk
+
+**Security Threats & Mitigations**
+| Threat | Risk | Mitigation |
+| --- | --- | --- |
+| XSS | Token theft from JS‑accessible storage | Use HTTP‑only cookies, sanitize inputs |
+| CSRF | Unwanted authenticated requests | SameSite cookies, CSRF tokens, Origin checks |
+| Replay | Stolen token reused | Short TTL + refresh token rotation |
+
+**Project Mapping (Current vs Recommended)**
+- **Current:** JWT access token only, 24‑hour expiry (`/src/lib/jwtUtils.ts`)
+- **Recommended extension:** add refresh token issuance, rotation, and `/api/auth/refresh` endpoint
+
+**Example Request (Refresh)**
+```bash
+curl -X POST http://localhost:3000/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  --cookie "refreshToken=<token>"
+```
+
+**Evidence to Capture (Suggested)**
+- Log showing expired access token → refresh flow success
+- API response with new access token
+- Console output with refresh token rotation
+
+**Reflection**
+- **Short TTL improves security** but requires reliable refresh handling.
+- **HTTP‑only cookies reduce XSS exposure** but require CSRF protections.
+- **Rotation limits replay risk** at the cost of extra server state or token tracking.
+
+---
+
 ## 🔒 Security Features Implemented
 
 ✅ **Password Security:** bcrypt hashing with 10 salt rounds  
