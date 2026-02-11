@@ -453,6 +453,7 @@ res.cookie("refreshToken", token, {
 - Always validate access token on protected routes
 - If expired, verify refresh token, issue a new access token
 - Rotate refresh tokens on every use to reduce replay risk
+  - If rotation fails, revoke the old refresh token immediately
 
 **Security Threats & Mitigations**
 | Threat | Risk | Mitigation |
