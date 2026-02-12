@@ -4617,7 +4617,582 @@ The FormInput component bakes in best practices (labels, ARIA attributes) so eve
 
 ## References
 
-- [React Context API Documentation](https://react.dev/reference/react/useContext)
+- [Zod Schema Documentation](https://zod.dev)
+- [@hookform/resolvers](https://github.com/react-hook-form/resolvers)
+- [Next.js Client Components](https://nextjs.org/docs/app/building-your-application/rendering/client-components)
+
+---
+
+## 🎯 User Feedback System (Toast, Modal, Loader)
+
+### Why User Feedback Matters
+
+Effective user feedback is critical for creating trustworthy applications. Users need to know:
+- ✅ **Instant Feedback**: Actions succeeded or failed immediately
+- 🚫 **Blocking Feedback**: Important confirmations before destructive actions  
+- ⏳ **Process Feedback**: Long operations show progress
+
+Without clear feedback, users feel **disconnected from the app** and lose trust. RedConnect implements a three-tier feedback system ensuring users always know the state of their actions.
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────┐
+│         User Feedback System            │
+├─────────────────────────────────────────┤
+│  Instant Feedback  │ Blocking Feedback  │ Process Feedback
+│  (Toast)           │ (Modal)            │ (Loader/Spinner)
+│                    │                    │
+│  - Success         │  - Confirmation    │  - Spinner
+│  - Error           │  - Warnings        │  - Dots
+│  - Info            │  - Delete actions  │  - Pulse
+│  - Loading         │  - Form submission │  - Skeleton
+└─────────────────────────────────────────┘
+```
+
+### 1. Toast Notifications (Instant Feedback)
+
+**Library**: Sonner (Modern, lightweight, accessible)
+
+#### Installation
+
+```bash
+npm install sonner
+```
+
+#### Global Provider Setup
+
+```tsx
+// src/app/providers.tsx
+"use client";
+
+import { Toaster } from "sonner";
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <Toaster
+        position="top-right"
+        expand={false}
+        richColors
+        closeButton
+        duration={4000}  // Auto-dismiss after 4 seconds
+      />
+      {children}
+    </>
+  );
+}
+```
+
+#### Usage Examples
+
+**Success Toast**
+```tsx
+import { toast } from "sonner";
+
+const handleSave = async () => {
+  const toastId = toast.loading("Saving...");
+  
+  try {
+    await saveData();
+    toast.success("Data saved successfully!", {
+      id: toastId,
+      description: "Your changes have been saved.",
+    });
+  } catch (error) {
+    toast.error("Save failed", {
+      id: toastId,
+      description: "Please try again.",
+    });
+  }
+};
+```
+
+**Error Toast**
+```tsx
+toast.error("Authentication failed", {
+  description: "Invalid email or password",
+});
+```
+
+**Loading Toast with ID Management**
+```tsx
+const notificationId = toast.loading("Processing...");
+
+// Later...
+toast.success("Done!", { id: notificationId });
+toast.error("Failed!", { id: notificationId });
+```
+
+#### Accessibility Features
+- ✅ `aria-live="polite"` region announcements
+- ✅ Automatic screen reader notification
+- ✅ Close button for manual dismissal
+- ✅ Keyboard accessible (Tab to focus close button)
+- ✅ Auto-disappears after 4 seconds (customizable)
+
+#### Integration Points
+- ✅ **Signup Form** - Success/error feedback on account creation
+- ✅ **Contact Form** - Confirmation when message sent
+- ✅ **Delete Modal** - Success after deletion
+- ✅ **API Calls** - Loading/error states during requests
+
+---
+
+### 2. Modal Dialogs (Blocking Feedback)
+
+**Component**: Custom built with accessibility features
+**File**: `src/components/Modal.tsx`
+
+#### Features
+- ✅ **Focus Trapping**: Keyboard navigation stays inside modal
+- ✅ **Escape Key**: Press Esc to close
+- ✅ **Semantic HTML**: Uses `<dialog>` element
+- ✅ **ARIA Attributes**: Proper roles and labels
+- ✅ **Focus Restoration**: Returns focus to previous element on close
+- ✅ **Backdrop Click**: Click overlay to close (configurable)
+- ✅ **Smooth Animations**: Subtle transitions
+
+#### Component API
+
+```tsx
+interface ModalProps {
+  isOpen: boolean;
+  title: string;
+  description?: string;
+  children?: React.ReactNode;
+  onClose: () => void;
+  actions?: {
+    confirm: {
+      label: string;
+      onClick: () => void;
+      variant?: "primary" | "danger";
+    };
+    cancel?: {
+      label: string;
+      onClick?: () => void;
+    };
+  };
+  size?: "sm" | "md" | "lg";
+}
+```
+
+#### Usage Example
+
+```tsx
+import { Modal } from "@/components";
+import { useState } from "react";
+
+export function DeleteUserModal() {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <>
+      <button onClick={() => setIsOpen(true)}>Delete User</button>
+      
+      <Modal
+        isOpen={isOpen}
+        title="Delete User?"
+        description="This action cannot be undone. The user will be permanently removed."
+        onClose={() => setIsOpen(false)}
+        size="md"
+        actions={{
+          confirm: {
+            label: "Delete",
+            onClick: handleDelete,
+            variant: "danger"
+          },
+          cancel: { label: "Cancel" }
+        }}
+      />
+    </>
+  );
+}
+```
+
+#### Accessibility Compliance
+- ✅ `aria-modal="true"` - Screen readers announce modal
+- ✅ `aria-labelledby` - Links title to modal
+- ✅ `aria-describedby` - Links description to modal
+- ✅ Focus management - Sets focus on dialog open
+- ✅ Keyboard navigation - Tab, Shift+Tab, Escape work correctly
+- ✅ Backdrop overlay - 50% opacity to reduce visual distraction
+
+#### Sizes
+- `sm`: Perfect for confirmations (max-width: 384px)
+- `md`: Standard dialogs (max-width: 448px)
+- `lg`: Complex workflows (max-width: 512px)
+
+#### Button Variants
+- `primary`: Blue button for standard actions ✓
+- `danger`: Red button for destructive actions ✗
+
+---
+
+### 3. Loaders & Spinners (Process Feedback)
+
+**Component**: Custom built with multiple variants
+**File**: `src/components/Loader.tsx`
+
+#### Features
+- ✅ **Multiple Variants**: Spinner, dots, pulse
+- ✅ **Flexible Display**: Inline or full-screen
+- ✅ **Custom Messages**: Context-specific loading text
+- ✅ **ARIA Roles**: Proper accessibility attributes
+- ✅ **Smooth Animations**: Tailwind CSS animations
+
+#### Component API
+
+```tsx
+interface LoaderProps {
+  isLoading: boolean;
+  message?: string;
+  variant?: "spinner" | "dots" | "pulse";
+  fullScreen?: boolean;
+  size?: "sm" | "md" | "lg";
+}
+```
+
+#### Variants
+
+**Spinner (Default)**
+```tsx
+<Loader
+  isLoading={isLoading}
+  variant="spinner"
+  message="Loading data..."
+/>
+```
+Best for: General loading states, API calls, initial page load
+
+**Dots**
+```tsx
+<Loader
+  isLoading={isLoading}
+  variant="dots"
+  message="Uploading file..."
+/>
+```
+Best for: Long operations, file uploads, sequential steps
+
+**Pulse**
+```tsx
+<Loader
+  isLoading={isLoading}
+  variant="pulse"
+  message="Saving..."
+/>
+```
+Best for: Brief operations, background updates, notifications
+
+#### Full-Screen Loader
+
+```tsx
+<Loader
+  isLoading={isDeleting}
+  message="Deleting user..."
+  variant="spinner"
+  fullScreen={true}
+/>
+```
+
+Use full-screen loaders for:
+- Critical operations requiring user attention
+- Operations that disable form interaction
+- Destructive actions (delete, reset)
+
+#### Loading Skeleton
+
+```tsx
+import { LoadingSkeleton } from "@/components";
+
+<LoadingSkeleton rows={5} />
+```
+
+Shows placeholder content while data loads, improving perceived performance.
+
+#### Accessibility
+- ✅ `role="status"` - Announces loading state
+- ✅ `aria-live="polite"` - Screen readers announce message
+- ✅ `aria-busy="true"` - Indicates busy state
+- ✅ Clear messaging - Users understand what's loading
+
+---
+
+### 4. Complete Feedback Flow Demo
+
+**Demo Page**: `/app/demo/delete-confirmation`
+
+This page demonstrates the full feedback orchestration:
+
+```
+User Action (Delete Click)
+         ↓
+    Modal Opens (Blocking Feedback)
+    "Are you sure?"
+         ↓
+User Confirms Delete
+         ↓
+   Loader Appears (Process Feedback)
+   "Deleting user..."
+         ↓
+API Call Completes
+         ↓
+   Modal Closes
+   Loader Disappears
+         ↓
+   Toast Appears (Instant Feedback)
+   "User deleted successfully!"
+         ↓
+Toast Auto-Dismisses (4 seconds)
+```
+
+#### UX Principles
+
+1. **Non-intrusive**: Feedback doesn't block primary content
+   - Toasts appear in corner, not center
+   - Loaders use overlay, not full-screen (unless critical)
+   - Modals are only for blocking decisions
+
+2. **Informative**: Every action has clear feedback
+   - Users know what happened and what to do next
+   - Clear error messages with recovery steps
+   - Success confirmations prevent confusion
+
+3. **Accessible**: All users can perceive feedback
+   - Screen reader announcements via ARIA
+   - Keyboard navigation works everywhere
+   - Color isn't the only indicator (+ text, icons)
+   - Sufficient contrast for visual feedback
+
+4. **Responsive**: Feedback adapts to action duration
+   - Instant actions: Toast only
+   - Short operations (< 2s): Spinner + toast
+   - Long operations (> 5s): Full-screen loader + progress
+   - Destructive actions: Modal + confirmation
+
+---
+
+### 5. Integration with Forms
+
+#### Signup Form Example
+
+```tsx
+// src/app/signup/page.tsx
+import { toast } from "sonner";
+
+const onSubmit = async (data: SignupInput) => {
+  const toastId = toast.loading("Creating your account...");
+
+  try {
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      toast.error("Signup failed", {
+        id: toastId,
+        description: result.message,
+      });
+      return;
+    }
+
+    toast.success("Account created!", {
+      id: toastId,
+      description: "Redirecting to login...",
+    });
+
+    setTimeout(() => router.push("/login"), 1500);
+  } catch (error) {
+    toast.error("Network error", {
+      id: toastId,
+      description: "Check your connection and try again.",
+    });
+  }
+};
+```
+
+#### Contact Form Example
+
+```tsx
+// src/app/contact/page.tsx
+const onSubmit = async (data: ContactFormData) => {
+  const toastId = toast.loading("Sending your message...");
+
+  try {
+    const response = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) throw new Error("Failed to send");
+
+    toast.success("Message sent!", {
+      id: toastId,
+      description: "We'll get back to you soon.",
+    });
+
+    reset();
+  } catch (error) {
+    toast.error("Failed to send message", {
+      id: toastId,
+      description: "Please try again.",
+    });
+  }
+};
+```
+
+---
+
+### 6. Best Practices Checklist
+
+- ✅ **Loading States**
+  - Show loader BEFORE async operation starts
+  - Update loader message for long operations
+  - Disable form/buttons while operation in progress
+
+- ✅ **Error Messages**
+  - Specific error messages (not "Error occurred")
+  - Include recovery steps when possible
+  - Use error toast for non-critical errors, modal for critical ones
+
+- ✅ **Success Feedback**
+  - Show success toast immediately after operation
+  - Include descriptive message ("Account created" not "Done")
+  - Auto-dismiss after 4 seconds (no manual action needed)
+
+- ✅ **Confirmation Dialogs**
+  - Use modal ONLY for destructive actions (delete, reset, clear)
+  - Always require explicit confirmation
+  - Default focus on "Cancel" button (safer default)
+
+- ✅ **Accessibility**
+  - Test with screen readers (NVDA, JAWS, VoiceOver)
+  - Verify keyboard navigation (Tab, Enter, Escape)
+  - Check color contrast (WCAG AA minimum 4.5:1)
+
+- ✅ **Performance**
+  - Keep toast messages under 100 characters
+  - Don't show multiple toasts for single action
+  - Reuse toast IDs to prevent toast stacking
+
+---
+
+### 7. Testing the Feedback System
+
+#### Manual Testing Steps
+
+1. **Visit Delete Demo Page**
+   ```
+   Navigate to: http://localhost:3000/demo/delete-confirmation
+   ```
+
+2. **Test Modal Flow**
+   - Click "Delete" on any user
+   - Modal should appear with title and description
+   - Press Esc → Modal closes
+   - Click "Cancel" → Modal closes and returns focus to delete button
+
+3. **Test Loader During Deletion**
+   - Click "Delete" and confirm
+   - Full-screen loader appears with message "Deleting user..."
+   - Loader disappears after 1.5 seconds
+
+4. **Test Success Toast**
+   - After loader disappears, success toast appears in top-right
+   - Toast shows: "User deleted successfully"
+   - Toast auto-dismisses after 4 seconds
+
+5. **Test Error Scenarios**
+   - (In production) Network failure triggers error toast
+   - Error toast shows "Failed to delete user"
+   - Modal closes, user can retry
+
+#### Testing Accessibility
+
+```bash
+# Using NVDA (Windows) or JAWS
+1. Enable screen reader
+2. Navigate to modal: Check that title is announced
+3. Tab through buttons: Verify focus order
+4. Press Esc: Modal closes and focus returns
+5. Tab to toast: Check that toast message is announced
+```
+
+---
+
+### 8. Color and Tone Reference
+
+| Status | Color | Icon | Message Example |
+|--------|-------|------|-----------------|
+| Success | `bg-green-600` | ✓ | "Saved successfully" |
+| Error | `bg-red-600` | ✗ | "Failed to save" |
+| Warning | `bg-yellow-600` | ⚠️ | "Unsaved changes" |
+| Info | `bg-blue-600` | ℹ️ | "Loading..." |
+| Loading | `bg-gray-600` | ⟳ | "Please wait..." |
+
+---
+
+### 9. Component File Structure
+
+```
+src/
+├── app/
+│   ├── providers.tsx           // Toast provider setup
+│   ├── signup/page.tsx         // Form with toast integration
+│   ├── contact/page.tsx        // Contact form with toasts
+│   └── demo/
+│       └── delete-confirmation/
+│           └── page.tsx        // Full feedback demo
+└── components/
+    ├── Modal.tsx               // Modal dialog component
+    ├── Loader.tsx              // Loader/spinner component
+    └── index.ts                // Component exports
+```
+
+---
+
+### 10. Reflection & Future Enhancements
+
+**Current Implementation**:
+✅ Toast notifications with multiple variants
+✅ Accessible modals with focus management
+✅ Loaders with semantic markup
+✅ Complete demo showing all feedback types
+✅ Integration with existing forms
+✅ ARIA compliance for screen readers
+
+**Future Enhancements**:
+- [ ] Notification queue for multiple toasts
+- [ ] Custom toast templates/layouts
+- [ ] Undo functionality in toasts ("Undo delete" button)
+- [ ] Toast sound notifications (optional)
+- [ ] Video tutorial showing feedback flows
+- [ ] A/B testing toast positions and durations
+- [ ] Analytics tracking user interactions with feedback
+- [ ] Multi-language support for toast messages
+
+**Key Learnings**:
+1. User feedback builds trust - never have silent operations
+2. Accessibility isn't an afterthought - it's fundamental
+3. Modals should be rare - use sparingly for critical actions
+4. Toast duration matters - too short and users miss it, too long and it's annoying
+5. Consistent patterns reduce cognitive load for users
+
+---
+
+**Last Updated**: February 12, 2026  
+**Project**: RedConnect - Blood Donation & Inventory Management Platform  
+**Feedback System Status**: ✅ Fully Implemented with Toast, Modal, Loader
+
+---
+
+[React Context API Documentation](https://react.dev/reference/react/useContext)
 - [Custom Hooks - React Docs](https://react.dev/learn/reusing-logic-with-custom-hooks)
 - [useReducer - React Docs](https://react.dev/reference/react/useReducer)
 - [Next.js Client Components](https://nextjs.org/docs/app/building-your-application/rendering/client-components)
