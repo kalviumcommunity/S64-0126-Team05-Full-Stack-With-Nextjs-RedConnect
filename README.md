@@ -4042,15 +4042,593 @@ useSWR(`/api/donors/${id}`, fetcher);
 
 ---
 
+# Form Handling & Validation with React Hook Form + Zod
+
+## Overview
+
+RedConnect uses **React Hook Form** combined with **Zod** schemas for powerful, type-safe form handling with minimal bundle size and excellent developer experience.
+
+## Why React Hook Form + Zod?
+
+| Tool | Purpose | Key Benefit |
+|------|---------|------------|
+| **React Hook Form** | Manages form state and validation | Lightweight, minimal re-renders, performant |
+| **Zod** | Provides declarative schema validation | Type-safe, reusable schemas, clear validation rules |
+| **@hookform/resolvers** | Connects Zod to React Hook Form | Seamless integration, out-of-the-box TypeScript support |
+
+**Architecture Principle**: React Hook Form optimizes rendering and state management, while Zod enforces data correctness through composable schemas.
+
+## Installation Status
+
+✅ **Installed Dependencies:**
+- `react-hook-form@^8.x` - Form state management
+- `@hookform/resolvers@^3.x` - Zod resolver for React Hook Form
+- `zod@^4.3.6` - Schema validation (already included)
+
+```bash
+npm install react-hook-form @hookform/resolvers
+```
+
+## Core Concepts
+
+### 1. Zod Schemas
+
+Define validation rules declaratively once, reuse everywhere:
+
+```typescript
+import { z } from "zod";
+
+const signupSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["ADMIN", "DONOR", "HOSPITAL"]),
+});
+
+// Derive TypeScript types automatically
+type SignupData = z.infer<typeof signupSchema>;
+```
+
+**Benefits:**
+- Single source of truth for validation rules
+- TypeScript types inferred from schema
+- Reusable across API validation and client-side validation
+- Clear, readable validation rules
+
+### 2. React Hook Form Hook
+
+Manage form state with minimal overhead:
+
+```typescript
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const { register, handleSubmit, formState: { errors } } = useForm({
+  resolver: zodResolver(signupSchema),
+  mode: "onChange", // Validate as user types
+});
+```
+
+**Hook Return Values:**
+- `register()` - Register form inputs and associated validation
+- `handleSubmit()` - Wrapper that validates before calling handler
+- `formState` - Object containing errors, isSubmitting, isDirty, etc.
+- `watch()` - Subscribe to form field changes
+- `reset()` - Clear form after successful submission
+
+### 3. Form Input Integration
+
+Use `register()` to connect inputs to form state:
+
+```typescript
+<input {...register("email")} type="email" />
+{errors.email && <span>{errors.email.message}</span>}
+```
+
+**How it Works:**
+1. `register("email")` returns `{ name: "email", ref, onChange, onBlur }`
+2. Spread into input element: `<input {...register("email")} />`
+3. Input automatically tracked by React Hook Form
+4. Validation errors appear in `errors.email`
+
+### 4. Reusable FormInput Component
+
+**File:** `src/components/FormInput.tsx`
+
+Eliminates repetitive input + error display code:
+
+```typescript
+interface FormInputProps {
+  label: string;
+  type?: string;
+  placeholder?: string;
+  register: UseFormRegisterReturn;
+  error?: FieldError;
+  disabled?: boolean;
+  required?: boolean;
+}
+
+export default function FormInput({
+  label,
+  type = "text",
+  register,
+  error,
+  disabled = false,
+  required = false,
+}: FormInputProps) {
+  return (
+    <div className="mb-4">
+      <label className="block text-sm font-medium mb-1">
+        {label}
+        {required && <span className="text-red-600 ml-1">*</span>}
+      </label>
+      <input
+        type={type}
+        disabled={disabled}
+        {...register}
+        className={`
+          w-full px-3 py-2 border rounded-md
+          focus:outline-none focus:ring-2 focus:ring-blue-500
+          ${error ? "border-red-500 bg-red-50" : "border-gray-300"}
+          ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}
+        `}
+        aria-invalid={!!error}
+      />
+      {error && (
+        <p className="text-red-600 text-sm mt-1">{error.message}</p>
+      )}
+    </div>
+  );
+}
+```
+
+**Usage:**
+```typescript
+<FormInput
+  label="Email"
+  type="email"
+  register={register("email")}
+  error={errors.email}
+  required
+/>
+```
+
+## Implemented Forms
+
+### 1. Signup Form
+
+**File:** `src/app/signup/page.tsx`
+
+Full signup form with:
+- ✅ Real-time validation using Zod schema
+- ✅ Reusable FormInput components
+- ✅ API integration with `/api/auth/signup`
+- ✅ Loading states during submission
+- ✅ Success/error message display
+- ✅ Form reset after successful submission
+- ✅ Accessible labels and ARIA attributes
+- ✅ Role selection dropdown
+- ✅ Validation tips section
+
+**Features Demonstrated:**
+```typescript
+const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm({
+  resolver: zodResolver(signupSchema),
+  mode: "onChange", // Real-time validation
+});
+
+const onSubmit = async (data: SignupInput) => {
+  // Send to API
+  const response = await fetch("/api/auth/signup", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+  if (response.ok) {
+    reset(); // Clear form after success
+    // Redirect to login
+  }
+};
+```
+
+**Validation Rules (from signupSchema):**
+- Name: 2-100 characters
+- Email: Valid email format, max 100 characters
+- Password: Minimum 6 characters, max 100 characters
+- Role: Must be ADMIN, DONOR, or HOSPITAL
+
+### 2. Contact Form
+
+**File:** `src/app/contact/page.tsx`
+
+Contact form demonstrating:
+- ✅ Textarea field handling with React Hook Form
+- ✅ Character counter for better UX
+- ✅ Real-time character count display
+- ✅ Field-level validation messages
+- ✅ Form submission with loading state
+- ✅ Success feedback with auto-dismiss
+- ✅ Accessible form structure
+- ✅ Sidebar with contact information
+- ✅ Form features showcase
+
+**Key Features:**
+```typescript
+// Watch message field for character counter
+const messageValue = watch("message", "");
+
+// Real-time character display
+<span className="text-xs font-medium">
+  {charCount}/1000
+</span>
+
+// Textarea integration
+<textarea {...register("message")} />
+```
+
+**Validation Rules (contactSchema):**
+- Name: 2-100 characters
+- Email: Valid email format
+- Message: 10-1000 characters
+
+## Form Validation Details
+
+### Schema Validation System
+
+Located in `src/lib/schemas/`:
+
+**authSchema.ts:**
+```typescript
+export const signupSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters long")
+    .max(100, "Name must be less than 100 characters"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .max(100, "Email must be less than 100 characters"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters long")
+    .max(100, "Password must be less than 100 characters"),
+  role: z
+    .enum(["ADMIN", "DONOR", "HOSPITAL"])
+    .default("DONOR"),
+});
+```
+
+### Error Display
+
+Errors are automatically derived from Zod validation:
+
+```typescript
+// In component
+{errors.email && (
+  <p className="text-red-600 text-sm mt-1">
+    {errors.email.message}
+  </p>
+)}
+```
+
+**Example Error Messages:**
+- "Name must be at least 2 characters long"
+- "Invalid email address"
+- "Password must be at least 6 characters long"
+
+## Accessibility Features
+
+### Label Association
+
+Every input has an associated label:
+```tsx
+<label htmlFor="email" className="block mb-1">
+  Email
+</label>
+<input id="email" {...register("email")} />
+```
+
+### ARIA Attributes
+
+Invalid fields marked with `aria-invalid`:
+```tsx
+<input
+  {...register("email")}
+  aria-invalid={!!errors.email}
+  aria-describedby={errors.email ? "email-error" : undefined}
+/>
+```
+
+### Keyboard Navigation
+
+- ✅ Tab through all form fields
+- ✅ Enter to submit form
+- ✅ Error messages announced to screen readers
+- ✅ Required fields marked with `*`
+
+## UX Best Practices Implemented
+
+### 1. Real-Time Validation
+
+Validate as user types instead of just on blur:
+```typescript
+useForm({
+  mode: "onChange", // Validate on change
+})
+```
+
+### 2. Loading States
+
+Disable form during submission:
+```tsx
+<button disabled={isSubmitting}>
+  {isSubmitting ? "Submitting..." : "Sign Up"}
+</button>
+
+<input disabled={isSubmitting} {...register("name")} />
+```
+
+### 3. Success Feedback
+
+Show clear success message:
+```tsx
+{successMessage && (
+  <div className="p-3 bg-green-50 border border-green-200 rounded">
+    <p className="text-green-700">✅ {successMessage}</p>
+  </div>
+)}
+```
+
+### 4. Error Recovery
+
+Preserve valid fields on validation error:
+```typescript
+// User fixes error, valid fields remain populated
+// Only clear on successful submission with reset()
+```
+
+### 5. Character Counters
+
+Provide visual feedback for length-limited fields:
+```tsx
+<div className="flex justify-between">
+  <label>Message</label>
+  <span className={charCount > 800 ? "text-orange-600" : ""}>
+    {charCount}/1000
+  </span>
+</div>
+```
+
+## Form State Management
+
+### Hook States
+
+```typescript
+const {
+  // Input registration
+  register,
+  
+  // Form submission handler
+  handleSubmit,
+  
+  // Form state
+  formState: {
+    errors,           // Validation errors by field
+    isSubmitting,     // Currently submitting?
+    isDirty,          // Form has changes?
+    isValid,          // All fields valid?
+    isValidating,     // Currently validating?
+  },
+  
+  // Watch specific fields
+  watch,
+  
+  // Reset form to initial state
+  reset,
+  
+  // Set error manually
+  setError,
+  
+  // Clear specific errors
+  clearErrors,
+} = useForm({ resolver: zodResolver(schema) });
+```
+
+### Advanced Usage
+
+Monitor form changes:
+```typescript
+const messageValue = watch("message"); // Gets updated as user types
+
+// Conditional rendering based on field value
+{messageValue && messageValue.length > 500 && (
+  <p className="text-orange-500">Getting close to limit!</p>
+)}
+```
+
+Manual error setting:
+```typescript
+const onSubmit = async (data) => {
+  if (apiError) {
+    setError("email", {
+      type: "manual",
+      message: "Email already exists",
+    });
+  }
+};
+```
+
+## Performance Considerations
+
+### Why React Hook Form is Efficient
+
+1. **Minimal Re-renders**: Only affected fields re-render, not entire form
+2. **Uncontrolled Components**: Uses refs instead of state for most fields
+3. **Lazy Validation**: Only validates touched/submitted fields
+4. **Small Bundle**: ~9KB minified + gzipped
+
+**Comparison:**
+```
+Traditional Form State:
+- Form state change → All fields re-render → Bad for large forms
+
+React Hook Form:
+- Field change → Only that field re-renders → Optimal performance
+```
+
+### Best Practices
+
+- ✅ Use `mode: "onChange"` for responsive validation
+- ✅ Use `mode: "onBlur"` for less aggressive validation
+- ✅ Avoid watching all fields: `watch()` triggers re-renders
+- ✅ Use `useCallback()` for form submission to prevent recreation
+
+## Testing Forms
+
+### Manual Testing Steps
+
+1. **Navigate to signup:**
+   ```bash
+   http://localhost:3000/signup
+   ```
+
+2. **Try invalid inputs:**
+   - Name: "Jo" (too short) → Error: "must be at least 2 characters"
+   - Email: "invalid" (no @) → Error: "Invalid email address"
+   - Password: "12345" (too short) → Error: "must be at least 6 characters"
+
+3. **Try valid inputs:**
+   - Name: "John Doe"
+   - Email: "john@example.com"
+   - Password: "password123"
+   - Role: "DONOR"
+   - Submit → Success message → Redirect to login
+
+4. **Contact form:**
+   ```bash
+   http://localhost:3000/contact
+   ```
+   - Watch character counter update as you type
+   - Try message < 10 chars → Error shown
+   - Submit valid message → Success feedback
+
+### Console Testing
+
+```javascript
+// Check form state
+console.log("isSubmitting:", formState.isSubmitting);
+console.log("errors:", formState.errors);
+console.log("isDirty:", formState.isDirty);
+console.log("isValid:", formState.isValid);
+```
+
+## Deliverables Checklist
+
+✅ **React Hook Form + Zod Integration**
+- Installed `react-hook-form` and `@hookform/resolvers`
+- Connected Zod schemas with `zodResolver`
+- Real-time validation on form change
+
+✅ **Reusable FormInput Component**
+- `src/components/FormInput.tsx` created
+- Accepts register, error, label, type, etc.
+- Displays validation errors
+- Accessible with ARIA attributes
+- Styled with Tailwind CSS
+
+✅ **Signup Form Implementation**
+- `src/app/signup/page.tsx` created
+- Uses `signupSchema` from `src/lib/schemas/authSchema.ts`
+- Validates name, email, password, role
+- Integrates with `/api/auth/signup` endpoint
+- Shows loading state during submission
+- Success/error message display
+- Form reset after successful submission
+
+✅ **Contact Form Implementation**
+- `src/app/contact/page.tsx` created
+- Custom `contactSchema` validation
+- Textarea field with character counter
+- Real-time validation feedback
+- Success message with auto-dismiss
+- Contact information sidebar
+
+✅ **Accessibility**
+- Associated labels for all inputs
+- ARIA attributes for error states
+- Keyboard navigation support
+- Screen reader friendly error messages
+- Required field indicators
+
+✅ **Documentation**
+- This section in README
+- Schema explanation and validation rules
+- Usage examples for both forms
+- Best practices and UX patterns
+- Testing instructions
+
+## Comparison: React Hook Form vs Alternatives
+
+| Feature | RHF | Formik | React Final Form |
+|---------|-----|--------|-----------------|
+| **Bundle Size** | ~9KB | ~33KB | ~9KB |
+| **Render Efficiency** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **TypeScript** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Learning Curve** | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
+| **Zod Integration** | ⭐⭐⭐⭐⭐ | ⚠️ Extra config | ⚠️ Extra config |
+| **Developer Experience** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+
+**Why RHF + Zod for RedConnect:**
+- Smallest bundle size (critical for Next.js)
+- Best TypeScript integration
+- Excellent Zod support out-of-the-box
+- Minimal re-renders = better performance
+- Active community and great documentation
+
+## Future Enhancements
+
+- **Multi-step forms**: Break signup into steps with validation per step
+- **Server-side validation**: Mirror Zod schemas on backend for additional checks
+- **Async validation**: Check email uniqueness during form interaction
+- **File uploads**: Integrate form file input with S3 upload flow
+- **Auto-save**: Save form progress to localStorage while editing
+- **Conditional fields**: Show/hide fields based on other field values
+- **Dynamic field arrays**: Add/remove multiple items in a single form
+- **Field dependencies**: Validate one field based on another field's value
+
+## Reflection: Why This Approach?
+
+### Performance
+React Hook Form's uncontrolled component approach reduces unnecessary re-renders, making forms feel snappy even with complex validation. This is critical for good UX.
+
+### Maintainability  
+Zod schemas centralize validation logic. When requirements change, you update the schema once and it automatically affects API validation, TypeScript types, and client-side validation.
+
+### Developer Experience
+Combining React Hook Form + Zod eliminates boilerplate. Developers write less code, understand form behavior immediately, and can reuse schemas across projects.
+
+### Type Safety
+`z.infer<typeof schema>` automatically generates TypeScript types. No manual type definitions = no type/schema mismatches, reducing bugs.
+
+### Accessibility
+The FormInput component bakes in best practices (labels, ARIA attributes) so every form is accessible by default, not as an afterthought.
+
+---
+
 ## References
 
 - [React Context API Documentation](https://react.dev/reference/react/useContext)
 - [Custom Hooks - React Docs](https://react.dev/learn/reusing-logic-with-custom-hooks)
 - [useReducer - React Docs](https://react.dev/reference/react/useReducer)
 - [Next.js Client Components](https://nextjs.org/docs/app/building-your-application/rendering/client-components)
+- [React Hook Form Documentation](https://react-hook-form.com)
+- [Zod Schema Documentation](https://zod.dev)
+- [@hookform/resolvers](https://github.com/react-hook-form/resolvers)
+- [Next.js Client Components](https://nextjs.org/docs/app/building-your-application/rendering/client-components)
 
 ---
 
-**Last Updated**: February 11, 2026  
-**Project**: RedConnect - Blood Donation & Inventory Management Platform
+**Last Updated**: February 12, 2026  
+**Project**: RedConnect - Blood Donation & Inventory Management Platform  
+**Form Handling Status**: ✅ Fully Implemented with React Hook Form + Zod
 ---
