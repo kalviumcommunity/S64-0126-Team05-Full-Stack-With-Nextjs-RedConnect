@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import FormInput from "@/components/FormInput";
 
 /**
@@ -38,7 +39,6 @@ type ContactFormData = z.infer<typeof contactSchema>;
  * - Optimistic success handling
  */
 export default function ContactPage() {
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [charCount, setCharCount] = useState(0);
 
   const {
@@ -52,6 +52,8 @@ export default function ContactPage() {
   });
 
   const onSubmit = async (data: ContactFormData) => {
+    const toastId = toast.loading("Sending your message...");
+
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -63,15 +65,20 @@ export default function ContactPage() {
         throw new Error("Failed to send message");
       }
 
-      setSubmitSuccess(true);
+      toast.success("Message sent successfully!", {
+        id: toastId,
+        description:
+          "Thank you for contacting RedConnect. We&apos;ll get back to you soon.",
+      });
+
       reset();
       setCharCount(0);
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (error) {
       console.error("Contact form error:", error);
-      alert("Failed to send message. Please try again.");
+      toast.error("Failed to send message", {
+        id: toastId,
+        description: "Please try again or contact us directly.",
+      });
     }
   };
 
@@ -97,16 +104,6 @@ export default function ContactPage() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-lg p-8">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
-                {/* Success Message */}
-                {submitSuccess && (
-                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h3 className="text-green-800 font-bold mb-1">Message Sent! ✅</h3>
-                    <p className="text-green-700 text-sm">
-                      Thank you for contacting RedConnect. We&apos;ll get back to you soon.
-                    </p>
-                  </div>
-                )}
-
                 {/* Name Field */}
                 <FormInput
                   label="Your Name"

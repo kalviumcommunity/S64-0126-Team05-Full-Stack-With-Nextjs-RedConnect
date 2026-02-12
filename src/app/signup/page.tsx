@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import FormInput from "@/components/FormInput";
 import { signupSchema, SignupInput } from "@/lib/schemas/authSchema";
 
@@ -19,8 +19,6 @@ import { signupSchema, SignupInput } from "@/lib/schemas/authSchema";
  */
 export default function SignupPage() {
   const router = useRouter();
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
     register,
@@ -34,11 +32,10 @@ export default function SignupPage() {
 
   /**
    * Form submit handler
-   * Sends validated data to API
+   * Sends validated data to API with toast feedback
    */
   const onSubmit = async (data: SignupInput) => {
-    setApiError(null);
-    setSuccessMessage(null);
+    const toastId = toast.loading("Creating your account...");
 
     try {
       const response = await fetch("/api/auth/signup", {
@@ -50,12 +47,18 @@ export default function SignupPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        setApiError(result.message || "Signup failed. Please try again.");
+        toast.error("Signup failed", {
+          id: toastId,
+          description: result.message || "Please try again with valid information.",
+        });
         console.error("Signup error:", result);
         return;
       }
 
-      setSuccessMessage("✅ Signup successful! Redirecting to login...");
+      toast.success("Account created successfully!", {
+        id: toastId,
+        description: "Redirecting to login...",
+      });
       reset();
 
       // Redirect to login after 1.5 seconds
@@ -65,7 +68,10 @@ export default function SignupPage() {
     } catch (error) {
       const errorMsg =
         error instanceof Error ? error.message : "An unexpected error occurred";
-      setApiError(errorMsg);
+      toast.error("Signup error", {
+        id: toastId,
+        description: errorMsg,
+      });
       console.error("Signup request error:", error);
     }
   };
@@ -84,22 +90,6 @@ export default function SignupPage() {
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-lg p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
-            {/* API Error Message */}
-            {apiError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-red-700 text-sm font-medium">{apiError}</p>
-              </div>
-            )}
-
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-                <p className="text-green-700 text-sm font-medium">
-                  {successMessage}
-                </p>
-              </div>
-            )}
-
             {/* Name Field */}
             <FormInput
               label="Full Name"
