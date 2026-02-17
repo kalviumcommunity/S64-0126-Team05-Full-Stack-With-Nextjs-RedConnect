@@ -1,4 +1,7 @@
 import { sendSuccess } from "@/lib/responseHandler";
+import { getCache, setCache } from "@/lib/redis";
+import { adminDashboardCacheKey } from "@/lib/cacheKeys";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin
@@ -10,6 +13,14 @@ export async function GET(req: Request) {
   const userId = req.headers.get("x-user-id");
   const userEmail = req.headers.get("x-user-email");
   const userRole = req.headers.get("x-user-role");
+
+  const cacheKey = adminDashboardCacheKey(userId);
+  const cachedData = await getCache(cacheKey);
+  if (cachedData) {
+    logger.info("Admin cache hit", { cacheKey });
+    return sendSuccess(JSON.parse(cachedData), "Admin access granted (cache)");
+  }
+  logger.info("Admin cache miss", { cacheKey });
 
   const adminData = {
     message: "Welcome to Admin Dashboard",
@@ -28,5 +39,6 @@ export async function GET(req: Request) {
     ],
   };
 
+  await setCache(cacheKey, JSON.stringify(adminData), 60);
   return sendSuccess(adminData, "Admin access granted");
 }

@@ -7,6 +7,8 @@ import { sendSuccess, sendError } from "@/lib/responseHandler";
 import { sendValidationError } from "@/lib/validationUtils";
 import { ERROR_CODES } from "@/lib/errorCodes";
 import { signupSchema } from "@/lib/schemas/authSchema";
+import { deleteByPattern, deleteCache } from "@/lib/redis";
+import { USERS_LIST_CACHE_PATTERN, userDetailCacheKey, TEST_USERS_CACHE_KEY } from "@/lib/cacheKeys";
 
 /**
  * POST /api/auth/signup
@@ -55,6 +57,9 @@ export async function POST(req: Request) {
       },
     });
 
+    await deleteByPattern(USERS_LIST_CACHE_PATTERN);
+    await deleteCache(userDetailCacheKey(newUser.id));
+    await deleteCache(TEST_USERS_CACHE_KEY);
     return sendSuccess(newUser, "Registration successful", 201);
   } catch (err) {
     // Handle Zod validation errors

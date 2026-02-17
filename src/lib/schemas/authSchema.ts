@@ -18,8 +18,7 @@ export const signupSchema = z.object({
     .min(6, "Password must be at least 6 characters long")
     .max(100, "Password must be less than 100 characters"),
   role: z
-    .enum(["ADMIN", "DONOR", "HOSPITAL"])
-    .default("DONOR"),
+    .enum(["ADMIN", "DONOR", "HOSPITAL", "NGO"])
 });
 
 /**

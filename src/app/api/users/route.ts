@@ -9,6 +9,14 @@ import { sendValidationError } from "@/lib/validationUtils";
 import { ERROR_CODES } from "@/lib/errorCodes";
 import { extractTokenFromHeader, verifyToken } from "@/lib/jwtUtils";
 import { signupSchema } from "@/lib/schemas/authSchema";
+import { getCache, setCache, deleteByPattern, deleteCache } from "@/lib/redis";
+import {
+  usersListCacheKey,
+  USERS_LIST_CACHE_PATTERN,
+  userDetailCacheKey,
+  TEST_USERS_CACHE_KEY,
+} from "@/lib/cacheKeys";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/users
@@ -39,6 +47,15 @@ export async function GET(req: Request) {
     }
 
     const { page, limit, skip, take } = parsePagination(req);
+    const cacheKey = usersListCacheKey(page, limit);
+    const cachedData = await getCache(cacheKey);
+
+    if (cachedData) {
+      logger.info("Users cache hit", { cacheKey });
+      return sendSuccess(JSON.parse(cachedData), "Users fetched successfully (cache)");
+    }
+
+    logger.info("Users cache miss", { cacheKey });
 
     const [total, users] = await prisma.$transaction([
       prisma.user.count(),
@@ -50,18 +67,19 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    return sendSuccess(
-      {
-        data: users,
-        meta: {
-          page,
-          limit,
-          total,
-          totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
-        },
+    const payload = {
+      data: users,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
       },
-      "Users fetched successfully"
-    );
+    };
+
+    await setCache(cacheKey, JSON.stringify(payload), 60);
+
+    return sendSuccess(payload, "Users fetched successfully");
   } catch (err) {
     return sendError(
       "Failed to fetch users",
@@ -110,6 +128,9 @@ export async function POST(req: Request) {
       select: userSafeSelect,
     });
 
+    await deleteByPattern(USERS_LIST_CACHE_PATTERN);
+    await deleteCache(userDetailCacheKey(user.id));
+    await deleteCache(TEST_USERS_CACHE_KEY);
     return sendSuccess(user, "User created successfully", 201);
   } catch (err) {
     // Handle Zod validation errors
@@ -134,4 +155,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

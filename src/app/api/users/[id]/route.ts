@@ -4,6 +4,14 @@ import { NextResponse } from "next/server";
 import { jsonError, safeJson } from "@/lib/api";
 import prisma from "@/lib/prisma";
 import { userSafeSelect } from "@/lib/prismaSelect";
+import { deleteByPattern, deleteCache, getCache, setCache } from "@/lib/redis";
+import {
+  USERS_LIST_CACHE_PATTERN,
+  userDetailCacheKey,
+  USERS_DETAIL_CACHE_PATTERN,
+  TEST_USERS_CACHE_KEY,
+} from "@/lib/cacheKeys";
+import { logger } from "@/lib/logger";
 
 // UUID v4 validation regex
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -18,8 +26,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (id === null) return jsonError("Invalid 'id' parameter", 400);
 
   try {
+    const cacheKey = userDetailCacheKey(id);
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      logger.info("User detail cache hit", { cacheKey });
+      return NextResponse.json({ data: JSON.parse(cachedData) });
+    }
+    logger.info("User detail cache miss", { cacheKey });
+
     const user = await prisma.user.findUnique({ where: { id }, select: userSafeSelect });
     if (!user) return jsonError("User not found", 404);
+    await setCache(cacheKey, JSON.stringify(user), 60);
     return NextResponse.json({ data: user });
   } catch (err) {
     return jsonError("Failed to fetch user", 500, err);
@@ -61,6 +78,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       data,
       select: userSafeSelect,
     });
+    await deleteCache(userDetailCacheKey(id));
+    await deleteByPattern(USERS_LIST_CACHE_PATTERN);
+    await deleteByPattern(USERS_DETAIL_CACHE_PATTERN);
+    await deleteCache(TEST_USERS_CACHE_KEY);
     return NextResponse.json({ data: user });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
@@ -80,6 +101,10 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   try {
     await prisma.user.delete({ where: { id } });
+    await deleteCache(userDetailCacheKey(id));
+    await deleteByPattern(USERS_DETAIL_CACHE_PATTERN);
+    await deleteByPattern(USERS_LIST_CACHE_PATTERN);
+    await deleteCache(TEST_USERS_CACHE_KEY);
     return NextResponse.json({ data: { id } });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
@@ -88,4 +113,3 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     return jsonError("Failed to delete user", 500, err);
   }
 }
-
