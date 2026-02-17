@@ -27,6 +27,9 @@ export default function SignupPage() {
     reset,
   } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      role: "DONOR",
+    },
     mode: "onChange", // Validate on change for better UX
   });
 
@@ -144,6 +147,7 @@ export default function SignupPage() {
               >
                 <option value="DONOR">Donor</option>
                 <option value="HOSPITAL">Hospital</option>
+                <option value="NGO">NGO</option>
                 <option value="ADMIN">Admin</option>
               </select>
               {errors.role && (

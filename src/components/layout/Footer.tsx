@@ -2,25 +2,25 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+    <footer className="bg-gray-900 text-gray-300 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-brand-DEFAULT rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-lg">●</span>
               </div>
               <span className="font-bold text-white">RedConnect</span>
             </div>
-            <p className="text-sm">
-              The world&aposs most advanced blood inventory management and donor connection platform.
+            <p className="text-sm leading-relaxed">
+              The world&apos;s most advanced blood inventory management and donor connection platform.
             </p>
           </div>
 
           {/* Platform */}
           <div>
-            <h3 className="text-white font-semibold mb-4">PLATFORM</h3>
+            <h3 className="text-white font-semibold mb-4 text-sm md:text-base">PLATFORM</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="hover:text-white transition">About Us</Link></li>
               <li><Link href="#" className="hover:text-white transition">How it works</Link></li>
@@ -30,7 +30,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">QUICK LINKS</h3>
+            <h3 className="text-white font-semibold mb-4 text-sm md:text-base">QUICK LINKS</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="hover:text-white transition">Find Blood</Link></li>
               <li><Link href="#" className="hover:text-white transition">Register Donor</Link></li>
@@ -40,7 +40,7 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-white font-semibold mb-4">LEGAL</h3>
+            <h3 className="text-white font-semibold mb-4 text-sm md:text-base">LEGAL</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="hover:text-white transition">Privacy Policy</Link></li>
               <li><Link href="#" className="hover:text-white transition">Terms of Use</Link></li>
