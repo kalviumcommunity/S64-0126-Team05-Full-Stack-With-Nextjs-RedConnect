@@ -61,7 +61,7 @@ export function Modal({
   actions,
   size = "md",
 }: ModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
   // Handle Escape key

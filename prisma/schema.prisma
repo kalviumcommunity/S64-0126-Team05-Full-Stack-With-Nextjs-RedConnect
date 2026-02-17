@@ -134,6 +134,7 @@ model FileUpload {
 enum Role {
   DONOR
   HOSPITAL
+  NGO
   ADMIN
 }
 

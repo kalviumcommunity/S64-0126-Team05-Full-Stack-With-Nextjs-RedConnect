@@ -1,7 +1,7 @@
 interface ButtonProps {
   label: string;
   onClick?: () => void;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "outline";
 }
 
 export default function Button({
@@ -9,10 +9,15 @@ export default function Button({
   onClick,
   variant = "primary",
 }: ButtonProps) {
-  const styles =
-    variant === "primary"
-      ? "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      : "bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300";
+  const baseStyles = "px-4 py-2 rounded-lg font-medium transition duration-200";
+  
+  const variantStyles = {
+    primary: "bg-brand-DEFAULT text-white hover:bg-brand-dark",
+    secondary: "bg-gray-200 text-gray-700 hover:bg-gray-300",
+    outline: "border-2 border-brand-DEFAULT text-brand-DEFAULT hover:bg-red-50",
+  };
+
+  const styles = `${baseStyles} ${variantStyles[variant]}`;
 
   return (
     <button type="button" onClick={onClick} className={styles}>
