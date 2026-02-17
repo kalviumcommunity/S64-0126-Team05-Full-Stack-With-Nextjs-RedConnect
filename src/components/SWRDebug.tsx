@@ -4,6 +4,7 @@ import { useSWRConfig } from "swr";
 import { useState, useEffect } from "react";
 
 export default function SWRDebug() {
+  const isDevelopment = process.env.NODE_ENV === "development";
   const { cache } = useSWRConfig();
   const [cacheKeys, setCacheKeys] = useState<string[]>([]);
   const [isVisible, setIsVisible] = useState(false);
@@ -23,11 +24,22 @@ export default function SWRDebug() {
   const getCacheData = (key: string) => {
     try {
       const data = cache.get(key);
-      return data ? JSON.stringify(data, null, 2).substring(0, 200) + "..." : "No data";
+      if (!data) return "No data";
+      
+      const stringified = JSON.stringify(data, null, 2);
+      const isTruncated = stringified.length > 200;
+      const preview = stringified.substring(0, 200);
+      
+      return isTruncated ? preview + "..." : preview;
     } catch {
       return "Error reading cache";
     }
   };
+
+  // Only render debug component in development mode
+  if (!isDevelopment) {
+    return null;
+  }
 
   if (!isVisible) {
     return (

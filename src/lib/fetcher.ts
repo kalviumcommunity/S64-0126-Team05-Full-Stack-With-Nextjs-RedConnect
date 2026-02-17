@@ -12,11 +12,18 @@ export const fetcher = async (url: string) => {
 
   if (!res.ok) {
     let errorBody = "";
+    const contentType = res.headers.get("content-type");
+    
     try {
-      const errorData = await res.json();
-      errorBody = errorData.error || errorData.message || "";
+      if (contentType?.includes("application/json")) {
+        const errorData = await res.json();
+        errorBody = errorData.error || errorData.message || "";
+      } else {
+        errorBody = await res.text();
+      }
     } catch {
-      errorBody = await res.text();
+      // If parsing fails, use generic error
+      errorBody = "";
     }
 
     throw new Error(

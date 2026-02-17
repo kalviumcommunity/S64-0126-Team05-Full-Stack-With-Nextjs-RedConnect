@@ -73,6 +73,11 @@ export default function DonatePage() {
       return;
     }
 
+    if (units > 5) {
+      setErrorMessage("Maximum 5 units can be donated at once");
+      return;
+    }
+
     if (!selectedDonorData) {
       setErrorMessage("Please select a valid donor");
       return;
@@ -81,24 +86,27 @@ export default function DonatePage() {
     setIsSubmitting(true);
 
     try {
-      // Optimistic update for blood bank inventory
-      const optimisticUpdate = {
-        ...bloodBanksData,
-        data: (bloodBanksData?.data?.data || bloodBanksData?.data || []).map((bank: BloodBank) => {
-          if (bank.id === selectedBloodBank) {
-            return {
-              ...bank,
-              inventories: bank.inventories.map((inv) => {
-                if (inv.bloodType === selectedDonorData.bloodType) {
-                  return { ...inv, units: inv.units + units };
-                }
-                return inv;
-              }),
-            };
-          }
-          return bank;
-        }),
-      };
+      // Preserve API response structure for optimistic update
+      const currentBanks = bloodBanksData?.data?.data || bloodBanksData?.data || [];
+      const updatedBanks = currentBanks.map((bank: BloodBank) => {
+        if (bank.id === selectedBloodBank) {
+          return {
+            ...bank,
+            inventories: bank.inventories.map((inv) => {
+              if (inv.bloodType === selectedDonorData.bloodType) {
+                return { ...inv, units: inv.units + units };
+              }
+              return inv;
+            }),
+          };
+        }
+        return bank;
+      });
+
+      // Maintain API response structure
+      const optimisticUpdate = bloodBanksData?.data?.data
+        ? { ...bloodBanksData, data: { ...bloodBanksData.data, data: updatedBanks } }
+        : { ...bloodBanksData, data: updatedBanks };
 
       // Apply optimistic update
       mutate("/api/blood-banks?page=1&limit=20", optimisticUpdate, false);

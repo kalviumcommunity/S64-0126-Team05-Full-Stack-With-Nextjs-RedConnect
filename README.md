@@ -1538,6 +1538,42 @@ export const sendError = (message, code, status = 500, details?) => {
 
 ### Usage Examples
 
+#### Response Structure
+
+The API uses two response structures based on the endpoint type:
+
+**Paginated List Response** (GET endpoints returning multiple items):
+```json
+{
+  "success": true,
+  "message": "Items fetched successfully",
+  "data": {
+    "data": [...],      // Array of items
+    "meta": {           // Pagination metadata
+      "page": 1,
+      "limit": 5,
+      "total": 100,
+      "totalPages": 20
+    }
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
+**Single Resource Response** (POST/PUT/DELETE endpoints returning single item):
+```json
+{
+  "success": true,
+  "message": "Resource created successfully",
+  "data": {
+    "id": "...",
+    "field": "value",
+    ...
+  },
+  "timestamp": "2026-02-09T10:30:45.123Z"
+}
+```
+
 #### Example 1: Successful List Endpoint
 ```bash
 curl "http://localhost:3000/api/donors?page=1&limit=5"
