@@ -3,6 +3,7 @@
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/fetcher";
+import Cookies from "js-cookie";
 
 interface BloodBank {
   id: number;
@@ -40,37 +41,40 @@ export default function DonatePage() {
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   // Fetch blood banks with inventory
-  const { data: bloodBanksData, error: bloodBanksError } = useSWR(
+  const { data: bloodBanksData, error: bloodBanksError, isLoading: isBanksLoading } = useSWR(
     "/api/blood-banks?page=1&limit=20",
     fetcher,
     { refreshInterval: 30000 }
   );
 
   // Fetch donors
-  const { data: donorsData, error: donorsError } = useSWR(
+  const { data: donorsData, error: donorsError, isLoading: isDonorsLoading } = useSWR(
     "/api/donors?page=1&limit=50&isActive=true",
     fetcher,
     { refreshInterval: 60000 }
   );
 
-  const bloodBanks: BloodBank[] = bloodBanksData?.data || [];
-  const donors: Donor[] = donorsData?.data || [];
+  // Handle data structure properly (API returns nested structure)
+  const bloodBanks: BloodBank[] = bloodBanksData?.data?.data || bloodBanksData?.data || [];
+  const donors: Donor[] = donorsData?.data?.data || donorsData?.data || [];
 
   const selectedDonorData = donors.find((d) => d.id === selectedDonor);
   const selectedBloodBankData = bloodBanks.find((b) => b.id === selectedBloodBank);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
 
     if (!selectedDonor || !selectedBloodBank || units <= 0) {
-      alert("Please fill in all required fields");
+      setErrorMessage("Please fill in all required fields");
       return;
     }
 
-    if (selectedDonorData?.bloodType !== selectedDonorData?.bloodType) {
-      alert("Donor blood type doesn't match selected blood type");
+    if (!selectedDonorData) {
+      setErrorMessage("Please select a valid donor");
       return;
     }
 
@@ -80,12 +84,12 @@ export default function DonatePage() {
       // Optimistic update for blood bank inventory
       const optimisticUpdate = {
         ...bloodBanksData,
-        data: bloodBanksData.data.map((bank: BloodBank) => {
+        data: (bloodBanksData?.data?.data || bloodBanksData?.data || []).map((bank: BloodBank) => {
           if (bank.id === selectedBloodBank) {
             return {
               ...bank,
               inventories: bank.inventories.map((inv) => {
-                if (inv.bloodType === selectedDonorData?.bloodType) {
+                if (inv.bloodType === selectedDonorData.bloodType) {
                   return { ...inv, units: inv.units + units };
                 }
                 return inv;
@@ -103,27 +107,29 @@ export default function DonatePage() {
         donorId: selectedDonor,
         bloodBankId: selectedBloodBank,
         units,
-        bloodType: selectedDonorData!.bloodType,
+        bloodType: selectedDonorData.bloodType,
         notes,
       };
 
+      const token = Cookies.get("auth_token");
       const response = await fetch("/api/blood-donation", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify(donationData),
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || "Failed to process donation");
+        throw new Error("Unable to process donation. Please try again.");
       }
 
       // Success - revalidate related data
       mutate("/api/blood-banks?page=1&limit=20");
       mutate("/api/donors?page=1&limit=50&isActive=true");
 
-      setSuccessMessage(`✅ Donation successful! ${units} units of ${selectedDonorData!.bloodType} blood donated.`);
+      setSuccessMessage(`✅ Donation successful! ${units} units of ${selectedDonorData.bloodType} blood donated.`);
       
       // Reset form
       setSelectedDonor(0);
@@ -135,9 +141,9 @@ export default function DonatePage() {
       setTimeout(() => setSuccessMessage(""), 5000);
 
     } catch (error: unknown) {
-      console.error("Donation error:", error);
-      const message = error instanceof Error ? error.message : "Unknown error occurred";
-      alert(`Error: ${message}`);
+      // Log for debugging but don't expose to user
+      console.error("Donation processing error");
+      setErrorMessage((error instanceof Error) ? "Unable to process donation. Please try again." : "An unexpected error occurred");
       
       // Revalidate to restore original data on error
       mutate("/api/blood-banks?page=1&limit=20");
@@ -150,9 +156,9 @@ export default function DonatePage() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h2 className="text-red-800 font-semibold">Failed to load data</h2>
+          <h2 className="text-red-800 font-semibold">Unable to load data</h2>
           <p className="text-red-600">
-            {bloodBanksError?.message || donorsError?.message}
+            We encountered an issue loading the required data. Please try again.
           </p>
           <button
             onClick={() => {
@@ -184,6 +190,14 @@ export default function DonatePage() {
           </div>
         )}
 
+        {errorMessage && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <span className="text-red-600">{errorMessage}</span>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Donation Form */}
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -196,9 +210,10 @@ export default function DonatePage() {
                   value={selectedDonor}
                   onChange={(e) => setSelectedDonor(Number(e.target.value))}
                   required
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  disabled={isDonorsLoading}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                 >
-                  <option value={0}>Choose a donor...</option>
+                  <option value={0}>{isDonorsLoading ? "Loading donors..." : "Choose a donor..."}</option>
                   {donors.map((donor) => (
                     <option key={donor.id} value={donor.id}>
                       {donor.name} ({donor.bloodType}) - {donor.city}
@@ -213,9 +228,10 @@ export default function DonatePage() {
                   value={selectedBloodBank}
                   onChange={(e) => setSelectedBloodBank(Number(e.target.value))}
                   required
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  disabled={isBanksLoading}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                 >
-                  <option value={0}>Choose a blood bank...</option>
+                  <option value={0}>{isBanksLoading ? "Loading blood banks..." : "Choose a blood bank..."}</option>
                   {bloodBanks.map((bank) => (
                     <option key={bank.id} value={bank.id}>
                       {bank.name} - {bank.city}
@@ -250,7 +266,7 @@ export default function DonatePage() {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isBanksLoading || isDonorsLoading}
                 className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 {isSubmitting ? "Processing..." : "💉 Record Donation"}

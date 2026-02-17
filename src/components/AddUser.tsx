@@ -3,6 +3,7 @@
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/fetcher";
+import Cookies from "js-cookie";
 
 interface User {
   id: number;
@@ -13,9 +14,12 @@ interface User {
 export default function AddUser() {
   const { data } = useSWR<User[]>("/api/users", fetcher);
   const [name, setName] = useState("");
+  const [error, setError] = useState("");
 
   const addUser = async () => {
     if (!name) return;
+    
+    setError("");
 
     // Optimistic update
     mutate(
@@ -24,20 +28,38 @@ export default function AddUser() {
       false
     );
 
-    // Actual API call
-    await fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email: "temp@user.com" }),
-    });
+    try {
+      const token = Cookies.get("auth_token");
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ name, email: "temp@user.com" }),
+      });
 
-    // Revalidate after update
-    mutate("/api/users");
-    setName("");
+      if (!response.ok) {
+        throw new Error("Failed to add user. Please try again.");
+      }
+      
+      // Revalidate after update
+      mutate("/api/users");
+      setName("");
+    } catch (err) {
+      // Rollback optimistic update on error
+      mutate("/api/users");
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
   };
 
   return (
     <div className="mt-4">
+      {error && (
+        <div className="mb-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
       <input
         type="text"
         value={name}
