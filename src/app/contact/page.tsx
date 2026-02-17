@@ -5,21 +5,30 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import FormInput from "@/components/FormInput";
+import FormInput from "@/components/ui/FormInput";
+import FormTextarea from "@/components/ui/FormTextarea";
 
-/**
- * Contact Form Schema
- * Validates contact information
- */
+/* -------------------- */
+/* Validation Schema    */
+/* -------------------- */
+
 const contactSchema = z.object({
   name: z
     .string()
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name must be less than 100 characters"),
+
   email: z
     .string()
-    .email("Invalid email address")
+    .min(1, "Email is required")
+    .email("Please enter a valid email")
     .max(100, "Email must be less than 100 characters"),
+
+  subject: z
+    .string()
+    .min(5, "Subject must be at least 5 characters")
+    .max(200, "Subject must be less than 200 characters"),
+
   message: z
     .string()
     .min(10, "Message must be at least 10 characters")
@@ -28,28 +37,28 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
-/**
- * Contact Form Component
- *
- * Demonstrates:
- * - Reusable FormInput component
- * - Textarea field with React Hook Form
- * - Schema validation with Zod
- * - Character counter for better UX
- * - Optimistic success handling
- */
 export default function ContactPage() {
   const [charCount, setCharCount] = useState(0);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
     reset,
+    formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     mode: "onChange",
+    defaultValues: {
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    },
   });
+
+  /* -------------------- */
+  /* Submit Handler       */
+  /* -------------------- */
 
   const onSubmit = async (data: ContactFormData) => {
     const toastId = toast.loading("Sending your message...");
@@ -61,189 +70,104 @@ export default function ContactPage() {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
+      if (!response.ok) throw new Error("Failed to send");
 
       toast.success("Message sent successfully!", {
         id: toastId,
-        description:
-          "Thank you for contacting RedConnect. We&apos;ll get back to you soon.",
+        description: "We’ll get back to you soon.",
       });
 
       reset();
       setCharCount(0);
     } catch (error) {
-      console.error("Contact form error:", error);
+      console.error(error);
+
       toast.error("Failed to send message", {
         id: toastId,
-        description: "Please try again or contact us directly.",
+        description: "Please try again later.",
       });
     }
   };
 
-  // Simulate character input
-  const handleMessageChange = (value: string) => {
-    setCharCount(value.length);
-  };
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-8">
+    <main className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-          <p className="text-lg text-gray-600">
-            Have questions about RedConnect? We&apos;d love to hear from you!
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold text-gray-900">Contact Us</h1>
+          <p className="text-gray-600 mt-2">
+            Have questions? We'd love to hear from you.
           </p>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Form Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
-                {/* Name Field */}
-                <FormInput
-                  label="Your Name"
-                  type="text"
-                  placeholder="Jane Smith"
-                  register={register("name")}
-                  error={errors.name}
-                  disabled={isSubmitting}
-                  required
-                  autoComplete="name"
-                />
+        {/* Form Card */}
+        <div className="bg-white shadow-lg rounded-lg p-8">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <div className="grid md:grid-cols-2 gap-4">
+              <FormInput
+                label="Your Name"
+                type="text"
+                register={register("name")}
+                error={errors.name?.message}
+                required
+                disabled={isSubmitting}
+              />
 
-                {/* Email Field */}
-                <FormInput
-                  label="Email Address"
-                  type="email"
-                  placeholder="jane@example.com"
-                  register={register("email")}
-                  error={errors.email}
-                  disabled={isSubmitting}
-                  required
-                  autoComplete="email"
-                />
-
-                {/* Message Textarea */}
-                <div className="mb-4">
-                  <div className="flex justify-between items-baseline mb-1">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Message <span className="text-red-600">*</span>
-                    </label>
-                    <span
-                      className={`text-xs font-medium ${
-                        charCount > 1000
-                          ? "text-red-600"
-                          : charCount > 800
-                            ? "text-orange-600"
-                            : "text-gray-500"
-                      }`}
-                    >
-                      {charCount}/1000
-                    </span>
-                  </div>
-                  <textarea
-                    {...register("message")}
-                    placeholder="Tell us how we can help..."
-                    disabled={isSubmitting}
-                    onChange={(e) => {
-                      handleMessageChange(e.target.value);
-                    }}
-                    className={`
-                      w-full px-3 py-2 border rounded-md
-                      focus:outline-none focus:ring-2 focus:ring-green-500
-                      transition-colors resize-none
-                      h-32
-                      ${errors.message ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}
-                      ${isSubmitting ? "bg-gray-100 cursor-not-allowed text-gray-500" : ""}
-                    `}
-                    aria-invalid={!!errors.message}
-                    aria-describedby={errors.message ? "message-error" : undefined}
-                  />
-                  {errors.message && (
-                    <p
-                      id="message-error"
-                      className="text-red-600 text-sm mt-1 font-medium"
-                    >
-                      {errors.message.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`
-                    w-full py-3 px-4 rounded-md font-semibold text-white
-                    transition-all duration-200
-                    ${
-                      isSubmitting
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700 active:bg-green-800 shadow-md hover:shadow-lg"
-                    }
-                  `}
-                >
-                  {isSubmitting ? "Sending..." : "Send Message"}
-                </button>
-              </form>
+              <FormInput
+                label="Email"
+                type="email"
+                register={register("email")}
+                error={errors.email?.message}
+                required
+                disabled={isSubmitting}
+              />
             </div>
-          </div>
 
-          {/* Info Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Contact Information */}
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Get in Touch
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">Email</h3>
-                  <a
-                    href="mailto:support@redconnect.io"
-                    className="text-green-600 hover:text-green-700 break-all"
-                  >
-                    support@redconnect.io
-                  </a>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">Phone</h3>
-                  <a
-                    href="tel:+1234567890"
-                    className="text-green-600 hover:text-green-700"
-                  >
-                    +1 (234) 567-890
-                  </a>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">Hours</h3>
-                  <p className="text-gray-600 text-sm">
-                    Monday - Friday: 9 AM - 6 PM IST
-                  </p>
-                </div>
+            <FormInput
+              label="Subject"
+              type="text"
+              register={register("subject")}
+              error={errors.subject?.message}
+              required
+              disabled={isSubmitting}
+            />
+
+            <div className="relative">
+              <FormTextarea
+                label="Message"
+                register={register("message")}
+                error={errors.message?.message}
+                required
+                rows={5}
+                disabled={isSubmitting}
+                onChange={(e) =>
+                  setCharCount(e.target.value.length)
+                }
+              />
+
+              <div
+                className={`text-xs text-right mt-1 ${
+                  charCount > 900
+                    ? "text-red-600"
+                    : "text-gray-500"
+                }`}
+              >
+                {charCount}/1000
               </div>
             </div>
 
-            {/* Form Features */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h3 className="font-bold text-green-900 mb-3">
-                ✨ Form Features
-              </h3>
-              <ul className="text-sm text-green-800 space-y-2">
-                <li>✅ Real-time validation</li>
-                <li>✅ Accessible form fields</li>
-                <li>✅ Character counter</li>
-                <li>✅ Error messages</li>
-                <li>✅ Loading states</li>
-                <li>✅ Success feedback</li>
-              </ul>
-            </div>
-          </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-full mt-6 py-3 rounded-md font-semibold text-white transition ${
+                isSubmitting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {isSubmitting ? "Sending..." : "Send Message"}
+            </button>
+          </form>
         </div>
       </div>
     </main>
