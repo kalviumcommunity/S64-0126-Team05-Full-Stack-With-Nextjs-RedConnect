@@ -22,10 +22,12 @@
     "pg": "^8.18.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "swr": "^2.4.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20.19.31",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
