@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
@@ -17,9 +17,9 @@ const s3 = new S3Client({
   region: REGION,
   credentials: process.env.AWS_ACCESS_KEY_ID
     ? {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-      }
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    }
     : undefined,
 });
 

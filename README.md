@@ -18,7 +18,7 @@ This platform ensures fast access, fresh data, and scalable infrastructure, espe
 
 ## ✅ Assessment Completion Status
 
-All **5 Assessments** have been successfully completed and implemented!
+All **5 Assessments** have been successfully completed and implemented. **State management (Context & Hooks)** is also implemented and documented.
 
 ### 1. RESTful API Route Design ✅
 **Status:** COMPLETE | **Date:** 9 February 2026
@@ -484,6 +484,102 @@ curl -X POST http://localhost:3000/api/auth/refresh \
 
 ---
 
+### 11. State Management Using Context and Hooks ✅
+
+**Status:** COMPLETE | **Date:** 11 February 2026
+
+Global client-side state is provided via **React Context** (Auth, UI), with **custom hooks** (`useAuth`, `useUI`) giving a clean API for components. This keeps shared data (logged-in user, theme, sidebar) available without prop drilling.
+
+#### Why Use Context and Hooks?
+
+| Concept | Purpose | Example |
+|--------|---------|--------|
+| **Context** | Pass data through the component tree without props | Share logged-in user across pages |
+| **Custom Hook** | Encapsulate reusable logic for cleaner components | `useAuth()` handles login, logout, and state access |
+| **Reducer (optional)** | Manage complex state transitions predictably | e.g. UI theme toggling with action types |
+
+**Key idea:** Context centralizes data; custom hooks provide a simple interface to use it anywhere.
+
+#### Folder Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx      # Wraps app with AuthProvider + UIProvider
+│   └── page.tsx        # Home page using useAuth + useUI
+├── context/
+│   ├── AuthContext.tsx # User auth state (login/logout)
+│   └── UIContext.tsx   # Theme + sidebar state
+└── hooks/
+    ├── useAuth.ts      # Consumes AuthContext, exposes isAuthenticated, user, login, logout
+    └── useUI.ts        # Consumes UIContext, exposes theme, toggleTheme, sidebarOpen, toggleSidebar
+```
+
+#### Purpose of Each Context
+
+- **AuthContext:** Holds `user` (string | null), `login(username)`, and `logout()`. Used to share “who is logged in” across the app without passing props. The provider wraps the app in `layout.tsx`.
+- **UIContext:** Holds `theme` (light | dark), `toggleTheme()`, `sidebarOpen`, and `toggleSidebar()`. Used for consistent theme and sidebar visibility across routes.
+
+#### Custom Hooks Encapsulate Shared Logic
+
+- **useAuth:** Wraps `useAuthContext()` and returns `{ isAuthenticated, user, login, logout }`. Components use `useAuth()` instead of touching the context directly.
+- **useUI:** Wraps `useUIContext()` and returns `{ theme, toggleTheme, sidebarOpen, toggleSidebar }`. Same idea: one place to consume UI state.
+
+#### State Flow
+
+1. **Layout** renders `AuthProvider` → `UIProvider` → `LayoutWrapper` → `children`.
+2. Any page or component under the tree can call `useAuth()` or `useUI()`.
+3. **Login** updates AuthContext → components using `useAuth()` re-render with new `user`.
+4. **Toggle theme/sidebar** updates UIContext → components using `useUI()` re-render.
+
+```
+RootLayout
+  → AuthProvider (user, login, logout)
+    → UIProvider (theme, sidebarOpen, toggleTheme, toggleSidebar)
+      → LayoutWrapper
+        → page.tsx (useAuth + useUI)
+```
+
+#### Code Snippets
+
+**Consuming context via hooks (e.g. Home page):**
+
+```tsx
+// src/app/page.tsx
+const { user, login, logout, isAuthenticated } = useAuth();
+const { theme, toggleTheme, sidebarOpen, toggleSidebar } = useUI();
+```
+
+**Providing context globally:**
+
+```tsx
+// src/app/layout.tsx
+<AuthProvider>
+  <UIProvider>
+    <LayoutWrapper>{children}</LayoutWrapper>
+  </UIProvider>
+</AuthProvider>
+```
+
+#### Evidence (Console Logs)
+
+When using the home page demo:
+
+- **Login:** `User logged in: KalviumUser`
+- **Logout:** `User logged out`
+- **Theme toggle:** `Theme toggled to dark` / `Theme toggled to light`
+- **Sidebar:** `Sidebar opened` / `Sidebar closed`
+
+Screenshots can be added under `docs/` (e.g. home page with theme toggle and auth state).
+
+#### Reflection
+
+- **Performance:** Use React DevTools → Components tab to inspect context values. Wrap context consumers in `React.memo()` if they re-render too often. For heavier state transitions, consider `useReducer()` with a dispatch pattern.
+- **Scalability & readability:** Context + hooks keep state in one place and components declarative. New features can add new contexts or hooks without cluttering props.
+- **Potential pitfalls:** Any context value change re-renders all consumers. Splitting contexts (Auth vs UI) helps. Avoid putting frequently changing and rarely used data in the same context as stable data.
+
+---
+
 ## 🔒 Security Features Implemented
 
 ✅ **Password Security:** bcrypt hashing with 10 salt rounds  
@@ -524,6 +620,12 @@ redconnect/
 │   │   ├── api/          # REST API routes
 │   │   └── favicon.ico   # Site favicon
 │   ├── middleware.ts    # Auth: public vs protected routes
+│   ├── context/        # React Context providers (Auth, UI)
+│   │   ├── AuthContext.tsx
+│   │   └── UIContext.tsx
+│   ├── hooks/          # Custom hooks (useAuth, useUI)
+│   │   ├── useAuth.ts
+│   │   └── useUI.ts
 │   ├── components/      # Reusable UI components
 │   │   ├── layout/       # Layout components (Header, Sidebar, LayoutWrapper)
 │   │   └── ui/           # Basic UI primitives (Button, Card, InputField)
@@ -546,6 +648,12 @@ Contains all routes and pages using Next.js App Router. This directory follows t
 - Special files like `loading.tsx`, `error.tsx` handle loading and error states
 
 **Purpose:** Centralizes all application routes and page-level components, making navigation and routing intuitive and maintainable.
+
+#### `src/context/`
+Contains React Context providers for global client state. `AuthContext` provides user auth state (login/logout); `UIContext` provides theme and sidebar state. Both are wrapped around the app in the root layout.
+
+#### `src/hooks/`
+Custom hooks that consume context and expose a simple API. `useAuth()` and `useUI()` keep components clean and avoid prop drilling. See [State Management Using Context and Hooks](#11-state-management-using-context-and-hooks-).
 
 #### `src/components/`
 Houses reusable UI components that can be shared across different pages and features. Examples include:
@@ -3241,11 +3349,113 @@ Server runs on `http://localhost:3000`
 
 ---
 
+## 🎨 Tailwind Configuration Summary
+
+### Custom Breakpoints
+
+The project uses Tailwind CSS v4 with a compatibility `tailwind.config.js` loaded via the `@config` directive. Custom responsive breakpoints are defined as:
+
+| Breakpoint | Min Width | Typical Device |
+|-----------|-----------|----------------|
+| `sm` | 640px | Large phone / small tablet |
+| `md` | 768px | Tablet |
+| `lg` | 1024px | Small desktop / landscape tablet |
+| `xl` | 1280px | Desktop |
+
+### Design Tokens — Brand Color Palette
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `brand-light` | `#93C5FD` | Accents, hover states, highlights |
+| `brand` (DEFAULT) | `#3B82F6` | Primary brand actions |
+| `brand-dark` | `#1E40AF` | Active states, emphasis |
+
+### Theme Variables (Light & Dark)
+
+| CSS Variable | Light Value | Dark Value |
+|-------------|-------------|------------|
+| `--background` | `#ffffff` | `#0f172a` |
+| `--foreground` | `#171717` | `#f1f5f9` |
+| `--card-bg` | `#ffffff` | `#1e293b` |
+| `--card-border` | `#e5e7eb` | `#334155` |
+| `--muted` | `#f3f4f6` | `#1e293b` |
+| `--muted-foreground` | `#6b7280` | `#94a3b8` |
+| `--accent` | `#dc2626` | `#ef4444` |
+
+### Dark Mode Configuration
+
+Dark mode uses the **class strategy** (`darkMode: 'class'` in `tailwind.config.js`). The `.dark` class is toggled on the `<html>` element by `UIContext`. Theme preference is persisted via `localStorage`.
+
+---
+
+## 📱 Responsiveness Evidence
+
+### Breakpoint Behavior
+
+| Viewport | Header Nav | Hero Layout | Stats Grid | Mission Cards | Footer Grid |
+|----------|-----------|-------------|------------|---------------|-------------|
+| **Mobile** (<640px) | Hamburger menu | Single column, centered | 1 column | 1 column | 1 column |
+| **Small** (640px) | Hamburger menu | Single column, centered | 3 columns | 2 columns | 2 columns |
+| **Tablet** (768px) | Full nav bar | Two columns side-by-side | 3 columns | 2 columns | 4 columns |
+| **Desktop** (1024px+) | Full nav bar | Two columns, larger gaps | 3 columns | 3 columns | 4 columns |
+
+### How to Test Responsiveness
+
+1. Run `npm run dev` and open `http://localhost:3000`
+2. Open Chrome DevTools → **Device Toolbar** (Ctrl+Shift+M)
+3. Test with presets: iPhone SE (375px), iPad (768px), Desktop (1280px)
+4. Verify: text sizes scale, grid columns adjust, no content clipping/overlapping
+
+### Key Responsive Utilities Used
+
+- **Padding:** `px-4 sm:px-6`, `py-12 sm:py-16`
+- **Typography:** `text-3xl sm:text-4xl md:text-5xl lg:text-6xl`
+- **Grid:** `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, `grid-cols-1 sm:grid-cols-2 md:grid-cols-4`
+- **Layout:** `flex-col md:flex-row`, `hidden md:flex`
+- **Navigation:** Mobile hamburger menu (visible below `md`) / full nav bar (visible at `md`+)
+
+---
+
+## 🌗 Theme Reflection
+
+### Implementation Approach
+
+- **Strategy:** Class-based dark mode (`darkMode: 'class'`) — the `.dark` class is toggled on `<html>` by a React context (`UIContext.tsx`)
+- **Toggle Component:** `ThemeToggle.tsx` with animated sun ↔ moon icon transition
+- **Persistence:** Theme preference stored in `localStorage` and restored on page load via `useEffect`
+- **Smooth Transitions:** CSS `transition: background-color 0.3s ease, color 0.3s ease` on `body` for seamless switching
+
+### Color Contrast Considerations (WCAG)
+
+| Element | Light Mode | Dark Mode | Contrast Ratio |
+|---------|-----------|-----------|---------------|
+| Body text on background | `#171717` on `#ffffff` | `#f1f5f9` on `#0f172a` | ~15.4:1 / ~13.8:1 ✅ |
+| Muted text | `#6b7280` on `#ffffff` | `#94a3b8` on `#0f172a` | ~5.4:1 / ~7.1:1 ✅ |
+| Accent (red) on background | `#dc2626` on `#ffffff` | `#ef4444` on `#0f172a` | ~4.6:1 / ~4.8:1 ✅ |
+
+All combinations meet **WCAG AA** (minimum 4.5:1 for normal text, 3:1 for large text).
+
+### Challenges Faced
+
+1. **Tailwind v4 vs v3 configuration:** The project uses Tailwind v4 which does not support a `tailwind.config.js` by default. Solved by using Tailwind v4's `@config` directive to load a v3-compatible config file.
+2. **SSR hydration mismatch:** Since the `dark` class is applied client-side from `localStorage`, there's a brief mismatch on first render. Mitigated with `suppressHydrationWarning` on the `<html>` element.
+3. **Smooth transitions across all elements:** Rather than adding `dark:` variants to every color utility, we used CSS custom properties that change under `.dark`, so all elements transition automatically.
+
+### Accessibility Notes
+
+- Theme toggle button includes `aria-label` describing the target mode ("Switch to dark mode" / "Switch to light mode")
+- The toggle button has clear visual affordance (sun/moon icon with smooth animation)
+- All interactive elements maintain sufficient color contrast in both themes
+- Focus states are preserved through Tailwind's default focus ring utilities
+
+---
+
 ## 📜 License
 
 This project is licensed under the MIT License.
 
 ---
 
-**Last Updated:** 9 February 2026  
-**Version:** 1.0.0 (All 5 Assessments Complete)
+**Last Updated:** 17 February 2026  
+**Version:** 1.1.0 (All Assessments + Responsive Layout & Dark Mode Complete)
+

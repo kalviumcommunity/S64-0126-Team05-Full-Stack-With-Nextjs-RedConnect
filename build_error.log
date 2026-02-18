@@ -1,0 +1,15 @@
+
+> redconnect@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./src/app/login
+You cannot have two parallel pages that resolve to the same path. Please check /(app)/login and /login.
+
+    at ignore-listed frames

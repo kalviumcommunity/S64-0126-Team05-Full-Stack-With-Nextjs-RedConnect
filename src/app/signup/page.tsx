@@ -53,17 +53,20 @@ function LockIcon({ className }: { className?: string }) {
     );
 }
 
-/* ── Login Page ── */
+/* ── Signup Page ── */
 
-export default function LoginPage() {
+export default function SignupPage() {
     const router = useRouter();
     const { login } = useAuthContext();
 
     const [role, setRole] = useState<"Donor" | "Hospital" | "NGO">("Donor");
+    const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [agreeTerms, setAgreeTerms] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -71,8 +74,23 @@ export default function LoginPage() {
         e.preventDefault();
         setError("");
 
-        if (!email || !password) {
+        if (!fullName || !email || !password || !confirmPassword) {
             setError("Please fill in all fields.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match.");
+            return;
+        }
+
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters.");
+            return;
+        }
+
+        if (!agreeTerms) {
+            setError("Please agree to the Terms of Service and Privacy Policy.");
             return;
         }
 
@@ -80,8 +98,7 @@ export default function LoginPage() {
 
         // Simulate API call
         setTimeout(() => {
-            // Mock login — set cookie and auth context
-            Cookies.set("token", "mock.jwt.token", { expires: keepLoggedIn ? 30 : 1 });
+            Cookies.set("token", "mock.jwt.token", { expires: 1 });
             login(email);
             setIsLoading(false);
             router.push("/dashboard");
@@ -95,27 +112,25 @@ export default function LoginPage() {
             {/* ── Left Panel: Image ── */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                 <Image
-                    src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1200&q=80"
-                    alt="Healthcare professionals joining hands"
+                    src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=1200&q=80"
+                    alt="Blood donation"
                     fill
                     className="object-cover"
                     sizes="50vw"
                     priority
                 />
-                {/* Dark overlay */}
                 <div className="absolute inset-0 bg-black/40" />
 
-                {/* Content over image */}
                 <div className="absolute bottom-0 left-0 right-0 p-10 lg:p-14 text-white z-10">
                     <div className="flex items-center gap-2 mb-6">
                         <HeartLogoIcon className="w-8 h-8 text-red-500" />
                         <span className="text-xl font-bold">RedConnect</span>
                     </div>
                     <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-4">
-                        Your blood is a miracle.
+                        Every drop counts.
                     </h2>
                     <p className="text-white/80 text-base lg:text-lg max-w-md">
-                        Be the reason for someone&apos;s heartbeat today. Join our network of life-savers and healthcare providers.
+                        Join thousands of donors and healthcare providers making a difference every day.
                     </p>
                 </div>
             </div>
@@ -130,13 +145,13 @@ export default function LoginPage() {
                     </div>
 
                     <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-                        Welcome to RedConnect
+                        Create your account
                     </h1>
                     <p className="text-muted-foreground mb-8">
-                        Log in to manage your impact and inventory.
+                        Sign up to start saving lives.
                     </p>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Role Selector */}
                         <div>
                             <label className="block text-sm font-semibold text-foreground mb-3">
@@ -159,6 +174,23 @@ export default function LoginPage() {
                             </div>
                         </div>
 
+                        {/* Full Name */}
+                        <div>
+                            <label htmlFor="fullName" className="block text-sm font-semibold text-foreground mb-2">
+                                Full Name
+                            </label>
+                            <input
+                                id="fullName"
+                                type="text"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                placeholder="John Doe"
+                                className="w-full px-4 py-3 rounded-lg border border-card-border bg-card-bg text-foreground
+                  placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500
+                  focus:border-transparent transition"
+                            />
+                        </div>
+
                         {/* Email */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-2">
@@ -178,21 +210,16 @@ export default function LoginPage() {
 
                         {/* Password */}
                         <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label htmlFor="password" className="block text-sm font-semibold text-foreground">
-                                    Password
-                                </label>
-                                <Link href="#" className="text-sm text-red-600 hover:text-red-700 font-medium transition">
-                                    Forgot password?
-                                </Link>
-                            </div>
+                            <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-2">
+                                Password
+                            </label>
                             <div className="relative">
                                 <input
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Enter your password"
+                                    placeholder="Minimum 6 characters"
                                     className="w-full px-4 py-3 pr-12 rounded-lg border border-card-border bg-card-bg text-foreground
                     placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500
                     focus:border-transparent transition"
@@ -203,26 +230,52 @@ export default function LoginPage() {
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition cursor-pointer"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
-                                    {showPassword ? (
-                                        <EyeOffIcon className="w-5 h-5" />
-                                    ) : (
-                                        <EyeIcon className="w-5 h-5" />
-                                    )}
+                                    {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
                                 </button>
                             </div>
                         </div>
 
-                        {/* Keep me logged in */}
-                        <div className="flex items-center gap-2">
+                        {/* Confirm Password */}
+                        <div>
+                            <label htmlFor="confirmPassword" className="block text-sm font-semibold text-foreground mb-2">
+                                Confirm Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="confirmPassword"
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Re-enter your password"
+                                    className="w-full px-4 py-3 pr-12 rounded-lg border border-card-border bg-card-bg text-foreground
+                    placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500
+                    focus:border-transparent transition"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition cursor-pointer"
+                                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showConfirmPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Terms */}
+                        <div className="flex items-start gap-2">
                             <input
-                                id="keep-logged-in"
+                                id="agree-terms"
                                 type="checkbox"
-                                checked={keepLoggedIn}
-                                onChange={(e) => setKeepLoggedIn(e.target.checked)}
-                                className="w-4 h-4 rounded border-card-border text-red-600 focus:ring-red-500 accent-red-600"
+                                checked={agreeTerms}
+                                onChange={(e) => setAgreeTerms(e.target.checked)}
+                                className="w-4 h-4 mt-0.5 rounded border-card-border text-red-600 focus:ring-red-500 accent-red-600"
                             />
-                            <label htmlFor="keep-logged-in" className="text-sm text-muted-foreground">
-                                Keep me logged in
+                            <label htmlFor="agree-terms" className="text-sm text-muted-foreground">
+                                I agree to the{" "}
+                                <Link href="#" className="text-red-600 hover:underline">Terms of Service</Link>
+                                {" "}and{" "}
+                                <Link href="#" className="text-red-600 hover:underline">Privacy Policy</Link>
                             </label>
                         </div>
 
@@ -233,9 +286,9 @@ export default function LoginPage() {
                             </p>
                         )}
 
-                        {/* Sign In Button */}
+                        {/* Sign Up Button */}
                         <button
-                            id="sign-in-button"
+                            id="sign-up-button"
                             type="submit"
                             disabled={isLoading}
                             className="w-full py-3.5 rounded-xl bg-red-600 text-white font-semibold text-base
@@ -248,10 +301,10 @@ export default function LoginPage() {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    Signing in...
+                                    Creating account...
                                 </span>
                             ) : (
-                                "Sign In"
+                                "Create Account"
                             )}
                         </button>
                     </form>
@@ -263,11 +316,11 @@ export default function LoginPage() {
                         <div className="flex-1 h-px bg-card-border" />
                     </div>
 
-                    {/* Sign Up Link */}
+                    {/* Login Link */}
                     <p className="text-center text-sm text-foreground">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/signup" className="text-red-600 hover:text-red-700 font-semibold transition">
-                            Sign Up
+                        Already have an account?{" "}
+                        <Link href="/login" className="text-red-600 hover:text-red-700 font-semibold transition">
+                            Sign In
                         </Link>
                     </p>
 
