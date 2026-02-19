@@ -1,8 +1,110 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+
+/* ── Types ── */
+interface BloodInventoryItem {
+    id: string;
+    hospitalName: string;
+    distance: number; // in km
+    address: string;
+    bloodGroup: string;
+    component: "Whole Blood" | "Plasma" | "Platelets";
+    units: number;
+    lastUpdated: string; // e.g., "5 MINS AGO"
+    isLive: boolean;
+    isCritical: boolean;
+}
+
+/* ── Mock Data ── */
+const MOCK_DATA: BloodInventoryItem[] = [
+    {
+        id: "1",
+        hospitalName: "City General Hospital",
+        distance: 2.4,
+        address: "124 Medical Dr.",
+        bloodGroup: "A+",
+        component: "Whole Blood",
+        units: 12,
+        lastUpdated: "5 MINS AGO",
+        isLive: true,
+        isCritical: false,
+    },
+    {
+        id: "2",
+        hospitalName: "St. Jude Medical Center",
+        distance: 4.1,
+        address: "88 West Avenue",
+        bloodGroup: "O-",
+        component: "Whole Blood",
+        units: 2,
+        lastUpdated: "12 MINS AGO",
+        isLive: false,
+        isCritical: true,
+    },
+    {
+        id: "3",
+        hospitalName: "Red Cross NGO Center",
+        distance: 6.8,
+        address: "45 NGO Plaza",
+        bloodGroup: "B+",
+        component: "Platelets",
+        units: 28,
+        lastUpdated: "1 MIN AGO",
+        isLive: true,
+        isCritical: false,
+    },
+    {
+        id: "4",
+        hospitalName: "Memorial Hospital",
+        distance: 8.5,
+        address: "1200 Main St.",
+        bloodGroup: "AB+",
+        component: "Plasma",
+        units: 5,
+        lastUpdated: "30 MINS AGO",
+        isLive: true,
+        isCritical: false,
+    },
+    {
+        id: "5",
+        hospitalName: "Community Health Clinic",
+        distance: 12.0,
+        address: "3300 Health Blvd.",
+        bloodGroup: "O+",
+        component: "Whole Blood",
+        units: 15,
+        lastUpdated: "1 HOUR AGO",
+        isLive: true,
+        isCritical: false,
+    },
+    {
+        id: "6",
+        hospitalName: "University Medical Center",
+        distance: 1.2,
+        address: "500 University Ave.",
+        bloodGroup: "A-",
+        component: "Whole Blood",
+        units: 8,
+        lastUpdated: "10 MINS AGO",
+        isLive: true,
+        isCritical: false,
+    },
+    {
+        id: "7",
+        hospitalName: "Lakeside Medical",
+        distance: 22.5,
+        address: "789 Lakeview Dr.",
+        bloodGroup: "B-",
+        component: "Plasma",
+        units: 4,
+        lastUpdated: "2 HOURS AGO",
+        isLive: false,
+        isCritical: true,
+    },
+];
 
 /* ── Icons ── */
 
@@ -79,7 +181,7 @@ function ChevronDownIcon({ className }: { className?: string }) {
 
 function SearchHeader() {
     return (
-        <header className="w-full bg-white shadow-sm z-50 relative sticky top-0">
+        <header className="w-full bg-white shadow-sm z-50 sticky top-0">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
@@ -132,7 +234,41 @@ function SearchHeader() {
 }
 
 export default function SearchPage() {
-    const [distance, setDistance] = useState(15);
+    const [distance, setDistance] = useState(50);
+    const [selectedBloodGroup, setSelectedBloodGroup] = useState<string | null>(null);
+    const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+
+    // Derived state: filtered results
+    const filteredResults = useMemo(() => {
+        return MOCK_DATA.filter((item) => {
+            // Filter by distance
+            if (item.distance > distance) return false;
+
+            // Filter by blood group
+            if (selectedBloodGroup && item.bloodGroup !== selectedBloodGroup) return false;
+
+            // Filter by component
+            if (selectedComponents.length > 0 && !selectedComponents.includes(item.component)) return false;
+
+            return true;
+        });
+    }, [distance, selectedBloodGroup, selectedComponents]);
+
+    const handleBloodGroupToggle = (bg: string) => {
+        setSelectedBloodGroup((prev) => (prev === bg ? null : bg));
+    };
+
+    const handleComponentToggle = (comp: string) => {
+        setSelectedComponents((prev) =>
+            prev.includes(comp) ? prev.filter((c) => c !== comp) : [...prev, comp]
+        );
+    };
+
+    const handleResetFilters = () => {
+        setDistance(50);
+        setSelectedBloodGroup(null);
+        setSelectedComponents([]);
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
@@ -154,7 +290,8 @@ export default function SearchPage() {
                                 {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
                                     <button
                                         key={bg}
-                                        className={`h-9 rounded-lg text-sm font-medium border transition-all ${bg === "A+" // Selected state mockup
+                                        onClick={() => handleBloodGroupToggle(bg)}
+                                        className={`h-9 rounded-lg text-sm font-medium border transition-all ${selectedBloodGroup === bg
                                                 ? "bg-red-600 text-white border-red-600 shadow-sm"
                                                 : "bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-600"
                                             }`}
@@ -169,14 +306,15 @@ export default function SearchPage() {
                         <div>
                             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Components</h3>
                             <div className="space-y-2">
-                                {["Whole Blood", "Plasma", "Platelets"].map((comp, i) => (
+                                {["Whole Blood", "Plasma", "Platelets"].map((comp) => (
                                     <label key={comp} className="flex items-center gap-3 cursor-pointer group">
                                         <input
                                             type="checkbox"
-                                            defaultChecked={i === 0}
+                                            checked={selectedComponents.includes(comp)}
+                                            onChange={() => handleComponentToggle(comp)}
                                             className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
                                         />
-                                        <span className="text-sm text-gray-700 group-hover:text-gray-900 transition">{comp}</span>
+                                        <span className={`text-sm transition ${selectedComponents.includes(comp) ? "text-gray-900 font-medium" : "text-gray-700 group-hover:text-gray-900"}`}>{comp}</span>
                                     </label>
                                 ))}
                             </div>
@@ -203,7 +341,10 @@ export default function SearchPage() {
                         </div>
 
                         {/* Reset Button */}
-                        <button className="w-full py-3 bg-gray-100 hovering:bg-gray-200 text-gray-600 font-semibold rounded-xl flex items-center justify-center gap-2 transition hover:bg-gray-200">
+                        <button
+                            onClick={handleResetFilters}
+                            className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-xl flex items-center justify-center gap-2 transition"
+                        >
                             <RefreshIcon className="w-4 h-4" />
                             Reset Filters
                         </button>
@@ -215,7 +356,7 @@ export default function SearchPage() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900">Real-time Blood Inventory</h1>
-                                <p className="text-gray-500 mt-1">Showing 14 available centers near your current location.</p>
+                                <p className="text-gray-500 mt-1">Showing {filteredResults.length} available centers near your current location.</p>
                             </div>
                             <div className="flex gap-3">
                                 <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 flex items-center gap-2 transition">
@@ -230,122 +371,79 @@ export default function SearchPage() {
                         </div>
 
                         {/* Cards Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Card 1 */}
-                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex flex-col items-center justify-center w-16 h-16 bg-red-50 text-red-600 rounded-xl border border-red-100">
-                                        <span className="text-2xl font-bold leading-none">A+</span>
-                                        <span className="text-[10px] font-bold uppercase mt-1">Blood Group</span>
-                                    </div>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <span className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1.5"></span>
-                                        LIVE
-                                    </span>
-                                </div>
+                        {filteredResults.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {filteredResults.map((item) => (
+                                    <div key={item.id} className={`bg-white p-6 rounded-2xl border shadow-sm hover:shadow-md transition relative overflow-hidden ${item.isCritical ? "border-red-100" : "border-gray-100"}`}>
+                                        {/* Critical overlay accent */}
+                                        {item.isCritical && (
+                                            <div className="absolute top-0 right-0 w-20 h-20 bg-red-600 blur-3xl opacity-5 rounded-full -mr-10 -mt-10"></div>
+                                        )}
 
-                                <h3 className="text-lg font-bold text-gray-900 mb-1">City General Hospital</h3>
-                                <p className="text-sm text-gray-500 flex items-center gap-1 mb-4">
-                                    <MapPinIcon className="w-4 h-4" />
-                                    2.4 km away • 124 Medical Dr.
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl border ${item.isCritical ? "bg-red-600 text-white shadow-lg shadow-red-600/20 border-transparent" : "bg-red-50 text-red-600 border-red-100"}`}>
+                                                <span className="text-2xl font-bold leading-none">{item.bloodGroup}</span>
+                                                <span className={`text-[10px] font-bold uppercase mt-1 ${item.isCritical ? "opacity-90" : ""}`}>Blood Group</span>
+                                            </div>
+                                            {item.isCritical ? (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 uppercase tracking-wide border border-red-200">
+                                                    <span className="w-1.5 h-1.5 bg-red-600 rounded-full mr-1.5 animate-pulse"></span>
+                                                    Critical
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <span className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1.5"></span>
+                                                    LIVE
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">{item.hospitalName}</h3>
+                                        <p className="text-sm text-gray-500 flex items-center gap-1 mb-4">
+                                            <MapPinIcon className="w-4 h-4" />
+                                            {item.distance} km away • {item.address}
+                                        </p>
+
+                                        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                                            <div>
+                                                <span className={`text-2xl font-bold ${item.isCritical ? "text-red-600" : "text-gray-900"}`}>{item.units < 10 && item.units > 0 ? `0${item.units}` : item.units}</span>
+                                                <span className="text-xs text-gray-500 ml-1">Units</span>
+                                                <div className="flex flex-col">
+                                                    <p className="text-[10px] text-gray-400 mt-0.5">UPDATED {item.lastUpdated}</p>
+                                                    <p className="text-[10px] text-gray-500 font-medium">{item.component}</p>
+                                                </div>
+                                            </div>
+                                            <button className={`px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition ${item.isCritical ? "shadow-lg shadow-red-600/10" : ""}`}>
+                                                Request
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-2xl border border-gray-100 dashed">
+                                <div className="bg-gray-50 p-4 rounded-full mb-4">
+                                    <SearchIcon className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900">No results found</h3>
+                                <p className="text-gray-500 max-w-sm mt-1">
+                                    We couldn't find any blood centers matching your current filters. Try increasing the search radius or changing the blood group.
                                 </p>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                                    <div>
-                                        <span className="text-2xl font-bold text-gray-900">12</span>
-                                        <span className="text-xs text-gray-500 ml-1">Units</span>
-                                        <p className="text-[10px] text-gray-400 mt-0.5">UPDATED 5 MINS AGO</p>
-                                    </div>
-                                    <button className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition">
-                                        Request
-                                    </button>
-                                </div>
+                                <button onClick={handleResetFilters} className="mt-6 text-red-600 font-medium hover:text-red-700">
+                                    Clear all filters
+                                </button>
                             </div>
-
-                            {/* Card 2 */}
-                            <div className="bg-white p-6 rounded-2xl border border-red-100 shadow-sm hover:shadow-md transition relative overflow-hidden">
-                                {/* Critical overlay accent */}
-                                <div className="absolute top-0 right-0 w-20 h-20 bg-red-600 blur-3xl opacity-5 rounded-full -mr-10 -mt-10"></div>
-
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex flex-col items-center justify-center w-16 h-16 bg-red-600 text-white rounded-xl shadow-lg shadow-red-600/20">
-                                        <span className="text-2xl font-bold leading-none">O-</span>
-                                        <span className="text-[10px] font-bold uppercase mt-1 opacity-90">Blood Group</span>
-                                    </div>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 uppercase tracking-wide border border-red-200">
-                                        <span className="w-1.5 h-1.5 bg-red-600 rounded-full mr-1.5 animate-pulse"></span>
-                                        Critical
-                                    </span>
-                                </div>
-
-                                <h3 className="text-lg font-bold text-gray-900 mb-1">St. Jude Medical Center</h3>
-                                <p className="text-sm text-gray-500 flex items-center gap-1 mb-4">
-                                    <MapPinIcon className="w-4 h-4" />
-                                    4.1 km away • 88 West Avenue
-                                </p>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                                    <div>
-                                        <span className="text-2xl font-bold text-red-600">02</span>
-                                        <span className="text-xs text-gray-500 ml-1">Units</span>
-                                        <p className="text-[10px] text-gray-400 mt-0.5">UPDATED 12 MINS AGO</p>
-                                    </div>
-                                    <button className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition shadow-lg shadow-red-600/10">
-                                        Request
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Card 3 */}
-                            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex flex-col items-center justify-center w-16 h-16 bg-red-50 text-red-600 rounded-xl border border-red-100">
-                                        <span className="text-2xl font-bold leading-none">B+</span>
-                                        <span className="text-[10px] font-bold uppercase mt-1">Blood Group</span>
-                                    </div>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <span className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1.5"></span>
-                                        LIVE
-                                    </span>
-                                </div>
-
-                                <h3 className="text-lg font-bold text-gray-900 mb-1">Red Cross NGO Center</h3>
-                                <p className="text-sm text-gray-500 flex items-center gap-1 mb-4">
-                                    <MapPinIcon className="w-4 h-4" />
-                                    6.8 km away • 45 NGO Plaza
-                                </p>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                                    <div>
-                                        <span className="text-2xl font-bold text-gray-900">28</span>
-                                        <span className="text-xs text-gray-500 ml-1">Units</span>
-                                        <p className="text-[10px] text-gray-400 mt-0.5">UPDATED 1 MIN AGO</p>
-                                    </div>
-                                    <button className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition">
-                                        Request
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Skeletons/Placeholders for more */}
-                            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 border-dashed flex flex-col justify-center gap-4 opacity-60">
-                                <div className="flex justify-between">
-                                    <div className="h-16 w-16 bg-gray-200 rounded-xl" />
-                                    <div className="h-6 w-16 bg-gray-200 rounded-full" />
-                                </div>
-                                <div className="h-6 w-3/4 bg-gray-200 rounded-md" />
-                                <div className="h-4 w-1/2 bg-gray-200 rounded-md" />
-                                <div className="h-12 w-full bg-gray-200 rounded-lg mt-auto" />
-                            </div>
-                        </div>
+                        )}
 
                         {/* Load More */}
-                        <div className="mt-8 flex justify-center">
-                            <button className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition shadow-sm">
-                                Load More Centers
-                                <ChevronDownIcon className="w-4 h-4" />
-                            </button>
-                        </div>
+                        {filteredResults.length > 6 && (
+                            <div className="mt-8 flex justify-center">
+                                <button className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition shadow-sm">
+                                    Load More Centers
+                                    <ChevronDownIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

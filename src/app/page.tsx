@@ -94,9 +94,9 @@ export default function LandingPage() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="#about" className="text-foreground hover:text-accent transition">About</Link>
-            <Link href="#blood-availability" className="text-foreground hover:text-accent transition">Blood Availability</Link>
-            <Link href="#hospitals" className="text-foreground hover:text-accent transition">Hospitals</Link>
+            <Link href="/about" className="text-foreground hover:text-accent transition">About</Link>
+            <Link href="/search" className="text-foreground hover:text-accent transition">Blood Availability</Link>
+            <Link href="/hospitals" className="text-foreground hover:text-accent transition">Hospitals</Link>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -128,9 +128,9 @@ export default function LandingPage() {
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-background border-t border-card-border px-6 py-4 space-y-3 transition-colors duration-300">
-            <Link href="#about" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>About</Link>
-            <Link href="#blood-availability" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>Blood Availability</Link>
-            <Link href="#hospitals" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>Hospitals</Link>
+            <Link href="/about" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>About</Link>
+            <Link href="/search" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>Blood Availability</Link>
+            <Link href="/hospitals" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>Hospitals</Link>
             <div className="flex gap-3 pt-2">
               <Link href="/signup" className="inline-flex px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition shadow-sm">Signup</Link>
               <Link href="/login" className="inline-flex px-4 py-2 rounded-lg bg-transparent border border-accent text-accent font-medium hover:bg-accent/10 transition">Login</Link>
@@ -266,13 +266,13 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
               <Link
-                href="#blood-availability"
+                href="/search"
                 className="inline-flex justify-center px-6 py-3 rounded-lg bg-white text-accent font-medium hover:bg-gray-100 transition"
               >
                 Search Blood Availability
               </Link>
               <Link
-                href="#emergency"
+                href="/contact"
                 className="inline-flex justify-center px-6 py-3 rounded-lg bg-transparent border-2 border-white text-white font-medium hover:bg-white/10 transition"
               >
                 Emergency Contact
@@ -323,13 +323,9 @@ export default function LandingPage() {
                 Platform
               </h4>
               <ul className="space-y-2">
-                {["About Us", "How it works", "Safety Guidelines"].map((link) => (
-                  <li key={link}>
-                    <Link href="#" className="text-muted-foreground hover:text-accent transition">
-                      {link}
-                    </Link>
-                  </li>
-                ))}
+                <li><Link href="/about" className="text-muted-foreground hover:text-accent transition">About Us</Link></li>
+                <li><Link href="/how-it-works" className="text-muted-foreground hover:text-accent transition">How it works</Link></li>
+                <li><Link href="/safety" className="text-muted-foreground hover:text-accent transition">Safety Guidelines</Link></li>
               </ul>
             </div>
             <div>
@@ -343,12 +339,12 @@ export default function LandingPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/login" className="text-muted-foreground hover:text-accent transition">
+                  <Link href="/signup" className="text-muted-foreground hover:text-accent transition">
                     Register Donor
                   </Link>
                 </li>
                 <li>
-                  <Link href="#hospitals" className="text-muted-foreground hover:text-accent transition">
+                  <Link href="/hospitals" className="text-muted-foreground hover:text-accent transition">
                     Partner Hospitals
                   </Link>
                 </li>
@@ -360,10 +356,10 @@ export default function LandingPage() {
               </h4>
               <ul className="space-y-2">
                 <li>
-                  <Link href="#" className="text-muted-foreground hover:text-accent transition">Privacy Policy</Link>
+                  <Link href="/privacy" className="text-muted-foreground hover:text-accent transition">Privacy Policy</Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-muted-foreground hover:text-accent transition">Terms of Use</Link>
+                  <Link href="/terms" className="text-muted-foreground hover:text-accent transition">Terms of Use</Link>
                 </li>
               </ul>
             </div>
