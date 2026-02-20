@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+
 
 
 /* ── Icons ── */
@@ -215,35 +217,41 @@ export default function Dashboard() {
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-6">Quick Actions</h3>
             <div className="space-y-3">
-              <button className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-red-100 hover:bg-red-50/50 transition group text-left">
-                <div className="p-3 bg-red-50 text-red-600 rounded-lg group-hover:bg-red-100 transition">
-                  <PlusIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 group-hover:text-red-700">Request Blood</p>
-                  <p className="text-xs text-gray-500">Initiate urgent transfer</p>
-                </div>
-              </button>
+              <Link href="/requests" className="w-full">
+                <button className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-red-100 hover:bg-red-50/50 transition group text-left">
+                  <div className="p-3 bg-red-50 text-red-600 rounded-lg group-hover:bg-red-100 transition">
+                    <PlusIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 group-hover:text-red-700">Request Blood</p>
+                    <p className="text-xs text-gray-500">Initiate urgent transfer</p>
+                  </div>
+                </button>
+              </Link>
 
-              <button className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/50 transition group text-left">
-                <div className="p-3 bg-gray-50 text-gray-600 rounded-lg group-hover:bg-blue-100 group-hover:text-blue-600 transition">
-                  <RefreshIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 group-hover:text-blue-700">Update Inventory</p>
-                  <p className="text-xs text-gray-500">Manual stock adjustment</p>
-                </div>
-              </button>
+              <Link href="/inventory" className="w-full">
+                <button className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/50 transition group text-left">
+                  <div className="p-3 bg-gray-50 text-gray-600 rounded-lg group-hover:bg-blue-100 group-hover:text-blue-600 transition">
+                    <RefreshIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 group-hover:text-blue-700">Update Inventory</p>
+                    <p className="text-xs text-gray-500">Manual stock adjustment</p>
+                  </div>
+                </button>
+              </Link>
 
-              <button className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-100 hover:bg-green-50/50 transition group text-left">
-                <div className="p-3 bg-gray-50 text-gray-600 rounded-lg group-hover:bg-green-100 group-hover:text-green-600 transition">
-                  <ClockIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 group-hover:text-green-700">Schedule Drive</p>
-                  <p className="text-xs text-gray-500">Plan donation campaign</p>
-                </div>
-              </button>
+              <Link href="/requests" className="w-full">
+                <button className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-100 hover:bg-green-50/50 transition group text-left">
+                  <div className="p-3 bg-gray-50 text-gray-600 rounded-lg group-hover:bg-green-100 group-hover:text-green-600 transition">
+                    <ClockIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 group-hover:text-green-700">Schedule Drive</p>
+                    <p className="text-xs text-gray-500">Plan donation campaign</p>
+                  </div>
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -261,9 +269,11 @@ export default function Dashboard() {
               <p className="text-sm font-medium leading-relaxed mb-4">
                 System-wide shortage of O-Negative reported. Please prioritize local donation requests for this type.
               </p>
-              <button className="px-4 py-2 bg-white text-red-700 text-xs font-bold rounded-lg hover:bg-gray-100 transition shadow-sm">
-                View Details
-              </button>
+              <Link href="/reports">
+                <button className="px-4 py-2 bg-white text-red-700 text-xs font-bold rounded-lg hover:bg-gray-100 transition shadow-sm">
+                  View Details
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -273,9 +283,11 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
-          <button className="text-sm font-semibold text-red-600 hover:text-red-700 transition">
-            View All Activities
-          </button>
+          <Link href="/requests">
+            <button className="text-sm font-semibold text-red-600 hover:text-red-700 transition">
+              View All Activities
+            </button>
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
