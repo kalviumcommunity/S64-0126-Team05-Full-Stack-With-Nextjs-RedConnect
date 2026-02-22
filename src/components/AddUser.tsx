@@ -1,78 +1,92 @@
 "use client";
 
 import { useState } from "react";
-import useSWR, { mutate } from "swr";
-import { fetcher } from "@/lib/fetcher";
-import Cookies from "js-cookie";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+import { mutate } from "swr";
 
 export default function AddUser() {
-  const { data } = useSWR<User[]>("/api/users", fetcher);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addUser = async () => {
-    if (!name) return;
-    
-    setError("");
+    if (!name || !email || !password) {
+      setError("All fields are required");
+      return;
+    }
 
-    // Optimistic update
-    mutate(
-      "/api/users",
-      [...(data || []), { id: Date.now(), name, email: "temp@user.com" }],
-      false
-    );
+    setError("");
+    setIsSubmitting(true);
 
     try {
-      const token = Cookies.get("auth_token");
       const response = await fetch("/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: JSON.stringify({ name, email: "temp@user.com" }),
+        credentials: "include",
+        body: JSON.stringify({ name, email, password }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add user. Please try again.");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add user");
       }
-      
+
       // Revalidate after update
-      mutate("/api/users");
+      await mutate("/api/users");
       setName("");
+      setEmail("");
+      setPassword("");
     } catch (err) {
-      // Rollback optimistic update on error
-      mutate("/api/users");
       setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-4 p-4 border rounded bg-gray-50">
+      <h2 className="font-bold mb-3">Add New User</h2>
       {error && (
-        <div className="mb-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
           {error}
         </div>
       )}
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Enter user name"
-        className="border px-2 py-1 mr-2"
-      />
-      <button
-        onClick={addUser}
-        className="bg-blue-600 text-white px-3 py-1 rounded"
-      >
-        Add User
-      </button>
+      <div className="flex flex-col gap-2">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="User name"
+          className="border px-2 py-1 rounded"
+          disabled={isSubmitting}
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email address"
+          className="border px-2 py-1 rounded"
+          disabled={isSubmitting}
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password (min 8 chars)"
+          className="border px-2 py-1 rounded"
+          disabled={isSubmitting}
+        />
+        <button
+          onClick={addUser}
+          disabled={isSubmitting}
+          className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+        >
+          {isSubmitting ? "Adding..." : "Add User"}
+        </button>
+      </div>
     </div>
   );
 }

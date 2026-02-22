@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       where.city = { contains: city, mode: "insensitive" };
     }
 
-    if (isActive !== null) {
+    if (isActive !== null && isActive !== undefined) {
       where.isActive = isActive === "true";
     }
 

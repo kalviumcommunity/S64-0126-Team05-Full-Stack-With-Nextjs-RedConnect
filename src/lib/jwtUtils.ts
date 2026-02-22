@@ -1,38 +1,26 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your-super-secret-key-change-in-production"
-);
+const rawSecret =
+  process.env.JWT_SECRET ||
+  (process.env.NODE_ENV === "development" ? "dev-jwt-secret-change-me" : "");
 
-/**
- * JWT Token Payload
- */
+if (!rawSecret) {
+  throw new Error("JWT_SECRET environment variable must be set");
+}
+
+const JWT_SECRET = new TextEncoder().encode(rawSecret);
+
 export interface TokenPayload {
+  type?: "access" | "refresh";
   id?: string;
   email?: string;
   role?: string;
   [key: string]: unknown;
 }
 
-/**
- * Generate JWT Token using jose
- * @param payload - User data to encode in token
- * @returns Signed JWT token
- */
-export const generateToken = async (payload: TokenPayload): Promise<string> => {
-  const token = await new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("24h")
-    .sign(JWT_SECRET);
-  return token;
-};
-
-/**
- * Verify JWT Token using jose
- * @param token - JWT token string
- * @returns Decoded token payload or null if invalid
- */
-export const verifyToken = async (token: string): Promise<TokenPayload | null> => {
+export const verifyToken = async (
+  token: string
+): Promise<TokenPayload | null> => {
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
     return verified.payload as unknown as TokenPayload;
@@ -41,15 +29,65 @@ export const verifyToken = async (token: string): Promise<TokenPayload | null> =
   }
 };
 
-/**
- * Extract token from Authorization header
- * Expected format: "Bearer <token>"
- * @param authHeader - Authorization header value
- * @returns Token string or null
- */
-export const extractTokenFromHeader = (authHeader?: string | null): string | null => {
+export const extractTokenFromHeader = (
+  authHeader?: string | null
+): string | null => {
   if (!authHeader) return null;
   const parts = authHeader.split(" ");
   if (parts.length !== 2 || parts[0] !== "Bearer") return null;
   return parts[1];
+};
+
+export const generateAccessToken = async (
+  payload: TokenPayload,
+  expiresIn: string = "15m"
+): Promise<string> => {
+  const tokenPayload: TokenPayload = {
+    ...payload,
+    type: "access",
+  };
+
+  const token = await new SignJWT(tokenPayload)
+    .setProtectedHeader({ alg: "HS512" })
+    .setExpirationTime(expiresIn)
+    .sign(JWT_SECRET);
+
+  return token;
+};
+
+export const generateRefreshToken = async (
+  payload: TokenPayload,
+  expiresIn: string = "7d"
+): Promise<string> => {
+  const tokenPayload: TokenPayload = {
+    ...payload,
+    type: "refresh",
+  };
+
+  const token = await new SignJWT(tokenPayload)
+    .setProtectedHeader({ alg: "HS512" })
+    .setExpirationTime(expiresIn)
+    .sign(JWT_SECRET);
+
+  return token;
+};
+
+export const verifyAccessToken = async (
+  token: string
+): Promise<TokenPayload | null> => {
+  const payload = await verifyToken(token);
+  if (!payload || payload.type !== "access") {
+    return null;
+  }
+  return payload;
+};
+
+export const verifyRefreshToken = async (
+  token: string
+): Promise<TokenPayload | null> => {
+  const payload = await verifyToken(token);
+  if (!payload || payload.type !== "refresh") {
+    return null;
+  }
+  return payload;
 };

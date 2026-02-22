@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
+import bcrypt from "bcrypt";
 
 import { parsePagination, safeJson } from "@/lib/api";
 import prisma from "@/lib/prisma";
@@ -7,7 +8,6 @@ import { userSafeSelect } from "@/lib/prismaSelect";
 import { sendSuccess, sendError } from "@/lib/responseHandler";
 import { sendValidationError } from "@/lib/validationUtils";
 import { ERROR_CODES } from "@/lib/errorCodes";
-import { extractTokenFromHeader, verifyToken } from "@/lib/jwtUtils";
 import { signupSchema } from "@/lib/schemas/authSchema";
 
 /**
@@ -17,27 +17,6 @@ import { signupSchema } from "@/lib/schemas/authSchema";
  */
 export async function GET(req: Request) {
   try {
-    // Extract and verify JWT token
-    const authHeader = req.headers.get("authorization");
-    const token = extractTokenFromHeader(authHeader);
-
-    if (!token) {
-      return sendError(
-        "Authorization token required",
-        "E103",
-        401
-      );
-    }
-
-    const decoded = await verifyToken(token);
-    if (!decoded) {
-      return sendError(
-        "Invalid or expired token",
-        "E104",
-        403
-      );
-    }
-
     const { page, limit, skip, take } = parsePagination(req);
 
     const [total, users] = await prisma.$transaction([
@@ -99,13 +78,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create new user with password (should be hashed with bcrypt in signup endpoint)
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+
+    // Create new user with hashed password
     const user = await prisma.user.create({
       data: {
         name: validatedData.name,
         email: validatedData.email.toLowerCase(),
-        password: validatedData.password,
-        role: validatedData.role,
+        password: hashedPassword,
+        role: "DONOR", // Prevent ADMIN self-assignment
       },
       select: userSafeSelect,
     });
@@ -118,7 +100,10 @@ export async function POST(req: Request) {
     }
 
     // Handle Prisma unique constraint errors
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
       return sendError(
         "A user with this email already exists",
         ERROR_CODES.DUPLICATE_EMAIL,
@@ -134,4 +119,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

@@ -7,6 +7,7 @@
 RedConnect is a full-stack Next.js platform designed to solve critical coordination issues in India's blood donation ecosystem. The problem isn't a lack of donors, but rather **poor coordination and outdated inventory data**. Blood availability information is often stale, manually updated, or inaccessible during emergencies, leading to critical delays that can cost lives.
 
 RedConnect connects **donors, hospitals, blood banks, and NGOs**, providing:
+
 - **Location-aware discovery** of blood availability
 - **Live availability dashboards** with real-time updates
 - **Secure role-based access** for different user types
@@ -21,9 +22,11 @@ This platform ensures fast access, fresh data, and scalable infrastructure, espe
 All **5 Assessments** have been successfully completed and implemented!
 
 ### 1. RESTful API Route Design ✅
+
 **Status:** COMPLETE | **Date:** 9 February 2026
 
 **Implemented:**
+
 - ✅ Blood banks CRUD endpoints (`/api/blood-banks`)
 - ✅ Donors CRUD endpoints (`/api/donors`)
 - ✅ Blood donations endpoints (`/api/blood-donation`)
@@ -38,9 +41,11 @@ All **5 Assessments** have been successfully completed and implemented!
 ---
 
 ### 2. Global API Response Handler ✅
+
 **Status:** COMPLETE | **Date:** 9 February 2026
 
 **Implemented:**
+
 - ✅ Centralized `sendSuccess()` response utility
 - ✅ Centralized `sendError()` response utility
 - ✅ Standardized respo nse format across all endpoints
@@ -51,6 +56,7 @@ All **5 Assessments** have been successfully completed and implemented!
 **Files:** `/src/lib/responseHandler.ts`, `/src/lib/errorCodes.ts`
 
 **Response Format:**
+
 ```json
 {
   "success": true/false,
@@ -64,9 +70,11 @@ All **5 Assessments** have been successfully completed and implemented!
 ---
 
 ### 3. Input Validation with Zod ✅
+
 **Status:** COMPLETE | **Date:** 9 February 2026
 
 **Implemented:**
+
 - ✅ Blood bank schema validation
 - ✅ Donor schema validation
 - ✅ Blood donation schema validation
@@ -75,7 +83,8 @@ All **5 Assessments** have been successfully completed and implemented!
 - ✅ Integrated validation error handling
 - ✅ Custom error messages for each field
 
-**Files:** 
+**Files:**
+
 - `/src/lib/schemas/bloodBankSchema.ts`
 - `/src/lib/schemas/donorSchema.ts`
 - `/src/lib/schemas/bloodDonationSchema.ts`
@@ -85,9 +94,11 @@ All **5 Assessments** have been successfully completed and implemented!
 ---
 
 ### 4. Authentication APIs (Signup/Login) ✅
+
 **Status:** COMPLETE | **Date:** 9 February 2026
 
 **Implemented:**
+
 - ✅ `/api/auth/signup` - User registration with bcrypt password hashing
 - ✅ `/api/auth/login` - User authentication with JWT token generation
 - ✅ Password hashing with bcrypt (10 salt rounds for security)
@@ -97,11 +108,13 @@ All **5 Assessments** have been successfully completed and implemented!
 - ✅ Error codes: E102 (invalid credentials), E103 (missing token), E104 (expired token)
 
 **Files:**
+
 - `/src/app/api/auth/signup/route.ts`
 - `/src/app/api/auth/login/route.ts`
 - `/src/lib/jwtUtils.ts`
 
 **Key Features:**
+
 - Secure password hashing (passwords never stored plain text)
 - JWT-based stateless sessions
 - Token verification in protected routes
@@ -110,9 +123,11 @@ All **5 Assessments** have been successfully completed and implemented!
 ---
 
 ### 5. Authorization Middleware (Role-Based Access Control) ✅
+
 **Status:** COMPLETE | **Date:** 9 February 2026
 
 **Implemented:**
+
 - ✅ Comprehensive authorization middleware in `src/middleware.ts`
 - ✅ JWT token validation for all API routes
 - ✅ Role-based access control (RBAC) enforcement
@@ -124,10 +139,12 @@ All **5 Assessments** have been successfully completed and implemented!
 - ✅ Error code E105 for insufficient permissions
 
 **Files:**
+
 - `/src/middleware.ts` - Main authorization middleware
 - `/src/app/api/admin/route.ts` - Admin-only endpoint
 
 **Route Configuration:**
+
 ```typescript
 /api/admin          → ["ADMIN"]
 /api/admin/users    → ["ADMIN"]
@@ -136,6 +153,7 @@ All **5 Assessments** have been successfully completed and implemented!
 ```
 
 **Public Routes (No Auth Required):**
+
 - `/` - Home page
 - `/login` - Login page
 - `/api/auth/signup` - User registration
@@ -145,9 +163,11 @@ All **5 Assessments** have been successfully completed and implemented!
 ---
 
 ### 6. Error Handling Middleware ✅
+
 **Status:** COMPLETE | **Date:** 9 February 2026
 
 **Implemented:**
+
 - ✅ Centralized error handler (`handleError()`, `handleTypedError()`, `asyncHandler()`)
 - ✅ Structured logging utility with JSON format
 - ✅ Development vs production error response differentiation
@@ -159,11 +179,13 @@ All **5 Assessments** have been successfully completed and implemented!
 - ✅ Comprehensive error classification system
 
 **Files:**
+
 - `/src/lib/logger.ts` - Structured logging utility
 - `/src/lib/errorHandler.ts` - Centralized error handler
 - `/src/app/api/test-error/route.ts` - Error testing endpoint
 
 **Key Features:**
+
 ```typescript
 // Centralized error handling
 handleError(error, "GET /api/users")
@@ -176,6 +198,7 @@ asyncHandler(async () => { ... }, "GET /route")
 ```
 
 **Error Response Comparison:**
+
 - **Development:** Shows full error details + stack trace
 - **Production:** Shows generic message, logs full details internally
 
@@ -190,7 +213,7 @@ asyncHandler(async () => { ... }, "GET /route")
 ✅ **Least Privilege:** Users get minimum necessary permissions based on role  
 ✅ **Error Handling:** Secure error messages without exposing system details  
 ✅ **Input Validation:** Zod schemas for all user inputs  
-✅ **Structured Logging:** JSON logging for debugging and monitoring  
+✅ **Structured Logging:** JSON logging for debugging and monitoring
 
 ---
 
@@ -236,7 +259,9 @@ redconnect/
 ### Directory Explanations
 
 #### `src/app/`
+
 Contains all routes and pages using Next.js App Router. This directory follows the file-based routing convention where:
+
 - `layout.tsx` defines the root layout for all pages
 - `page.tsx` files represent routes
 - Nested folders create nested routes
@@ -245,7 +270,9 @@ Contains all routes and pages using Next.js App Router. This directory follows t
 **Purpose:** Centralizes all application routes and page-level components, making navigation and routing intuitive and maintainable.
 
 #### `src/components/`
+
 Houses reusable UI components that can be shared across different pages and features. Examples include:
+
 - Button components
 - Form inputs
 - Cards and containers
@@ -255,7 +282,9 @@ Houses reusable UI components that can be shared across different pages and feat
 **Purpose:** Promotes code reusability, consistency in UI/UX, and easier maintenance. Components here follow a modular approach, making it easy to test and update individual pieces of the interface.
 
 #### `src/lib/`
+
 Contains utility functions, helper modules, and configuration files. This includes:
+
 - API client configurations
 - Data validation utilities
 - Date/time formatters
@@ -271,14 +300,14 @@ Contains utility functions, helper modules, and configuration files. This includ
 
 ### Route map
 
-| Route | Type | Description |
-|-------|------|-------------|
-| `/` | **Public** | Home page |
-| `/login` | **Public** | Login page (sets auth cookie, redirects to dashboard) |
-| `/dashboard` | **Protected** | Dashboard (requires valid token) |
-| `/users` | **Protected** | List users |
-| `/users/[id]` | **Protected** | Dynamic user profile (e.g. `/users/1`, `/users/2`) |
-| (any other path) | — | Custom 404 via `not-found.tsx` |
+| Route            | Type          | Description                                           |
+| ---------------- | ------------- | ----------------------------------------------------- |
+| `/`              | **Public**    | Home page                                             |
+| `/login`         | **Public**    | Login page (sets auth cookie, redirects to dashboard) |
+| `/dashboard`     | **Protected** | Dashboard (requires valid token)                      |
+| `/users`         | **Protected** | List users                                            |
+| `/users/[id]`    | **Protected** | Dynamic user profile (e.g. `/users/1`, `/users/2`)    |
+| (any other path) | —             | Custom 404 via `not-found.tsx`                        |
 
 ### File-based routing structure
 
@@ -309,7 +338,8 @@ Protected routes require a valid JWT in the `token` cookie. Middleware runs on t
 // src/middleware.ts (simplified)
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith("/login") || pathname === "/") return NextResponse.next();
+  if (pathname.startsWith("/login") || pathname === "/")
+    return NextResponse.next();
   if (pathname.startsWith("/dashboard") || pathname.startsWith("/users")) {
     const token = req.cookies.get("token")?.value;
     if (!token) return NextResponse.redirect(new URL("/login", req.url));
@@ -353,17 +383,20 @@ Add screenshots to the repo and link them here:
 ### Installation
 
 1. **Clone the repository** (if not already done):
+
    ```bash
    git clone <repository-url>
    cd S64-0126-Team05-Full-Stack-With-Nextjs-RedConnect-1
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Run the development server**:
+
    ```bash
    npm run dev
    ```
@@ -384,9 +417,10 @@ Add screenshots to the repo and link them here:
 
 ![RedConnect Running Locally](./screenshot.png)
 
-*Screenshot of RedConnect running locally on http://localhost:3000*
+_Screenshot of RedConnect running locally on http://localhost:3000_
 
 > **Note:** To capture your own screenshot:
+>
 > 1. Run `npm run dev`
 > 2. Open http://localhost:3000 in your browser
 > 3. Take a screenshot
@@ -398,12 +432,14 @@ Add screenshots to the repo and link them here:
 ## 🏗️ Naming Conventions
 
 ### Files and Folders
+
 - **Components**: Use PascalCase (e.g., `BloodCard.tsx`, `DonorForm.tsx`)
 - **Utilities/Helpers**: Use camelCase (e.g., `formatDate.ts`, `validateEmail.ts`)
 - **Pages/Routes**: Use lowercase with hyphens for multi-word routes (e.g., `blood-availability/page.tsx`)
 - **Constants**: Use UPPER_SNAKE_CASE (e.g., `API_BASE_URL`, `MAX_DONORS_PER_PAGE`)
 
 ### Code
+
 - **Components**: PascalCase for component names
 - **Functions/Variables**: camelCase
 - **Types/Interfaces**: PascalCase with descriptive names (e.g., `BloodInventory`, `DonorProfile`)
@@ -412,6 +448,7 @@ Add screenshots to the repo and link them here:
 ---
 
 ## 🔌 REST API (Next.js App Router)
+
 ---
 
 ## 🧱 Component Architecture & Shared Layout
@@ -805,6 +842,7 @@ This structure will help our team scale the app in future sprints by:
 ### Clarity
 
 The structure provides immediate clarity:
+
 - New developers can understand the codebase organization within minutes
 - Code reviews become more efficient when reviewers know where to expect certain types of code
 - Documentation is easier to maintain when the structure itself is self-documenting
@@ -839,12 +877,14 @@ RedConnect implements **SWR (Stale-While-Revalidate)** for efficient client-side
 SWR, built by Vercel (creators of Next.js), provides an efficient approach to client-side data fetching:
 
 **Key Concepts:**
+
 - **SWR**: Stale-While-Revalidate — returns cached (stale) data immediately, then revalidates in the background
 - **Automatic Caching**: Avoids redundant network requests by reusing data
 - **Revalidation**: Fetches new data automatically when the user revisits or refocuses the page
 - **Optimistic UI**: Updates UI instantly while waiting for server confirmation
 
 **Benefits:**
+
 - Fast, responsive UI even during data refreshes
 - Reduced server load through intelligent caching
 - Automatic background updates
@@ -853,6 +893,7 @@ SWR, built by Vercel (creators of Next.js), provides an efficient approach to cl
 ### SWR Installation & Setup
 
 **Dependencies:**
+
 ```json
 {
   "swr": "^2.2.5"
@@ -860,6 +901,7 @@ SWR, built by Vercel (creators of Next.js), provides an efficient approach to cl
 ```
 
 **Fetcher Utility:**
+
 ```typescript
 // src/lib/fetcher.ts
 export const fetcher = async (url: string) => {
@@ -891,6 +933,7 @@ useSWR(
 ```
 
 **Key Patterns:**
+
 - **Static**: `"/api/users"` - always fetches the same data
 - **Dynamic**: `userId ? \`/api/users/${userId}\` : null` - fetches when dependency exists
 - **Parameterized**: `"/api/donors?page=1&limit=10&bloodType=A+"` - includes query params
@@ -898,6 +941,7 @@ useSWR(
 ### Data Fetching with SWR
 
 **Basic Usage:**
+
 ```typescript
 // src/app/users/page.tsx
 "use client";
@@ -959,6 +1003,7 @@ const { data } = useSWR("/api/donors", fetcher, {
 ```
 
 **Revalidation Options:**
+
 - `revalidateOnFocus: true` - Refetch when user returns to tab
 - `refreshInterval: 5000` - Auto-refresh every 5 seconds
 - `revalidateOnReconnect: true` - Refetch when network reconnects
@@ -1027,6 +1072,7 @@ export default function AddUser() {
 ```
 
 **Optimistic UI Workflow:**
+
 1. **Update UI Instantly** - Add item to local cache
 2. **Send API Request** - POST to server
 3. **Handle Response** - Revalidate cache on success/error
@@ -1034,6 +1080,7 @@ export default function AddUser() {
 ### Advanced Mutation Patterns
 
 **Blood Donation with Optimistic Inventory Update:**
+
 ```typescript
 // From src/app/donate/page.tsx
 const handleSubmit = async (e: React.FormEvent) => {
@@ -1081,6 +1128,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 ### Cache Management and Debugging
 
 **SWR Cache Debug Component:**
+
 ```typescript
 // src/components/SWRDebug.tsx
 "use client";
@@ -1132,22 +1180,24 @@ export default function SWRDebug() {
 
 ### SWR vs Traditional Fetch API
 
-| Feature | SWR | Traditional Fetch API |
-|---------|-----|----------------------|
-| Built-in Cache | ✅ Automatic | ❌ Manual implementation |
-| Auto Revalidation | ✅ Focus/Reconnect/Interval | ❌ Manual polling |
-| Optimistic UI | ✅ Built-in mutate() | ⚠️ Manual state management |
-| Error Handling | ✅ Retry logic | ❌ Manual error handling |
-| Loading States | ✅ Built-in | ❌ Manual loading states |
-| Simplicity | ✅ Hook-based | ⚠️ Complex state management |
+| Feature           | SWR                         | Traditional Fetch API       |
+| ----------------- | --------------------------- | --------------------------- |
+| Built-in Cache    | ✅ Automatic                | ❌ Manual implementation    |
+| Auto Revalidation | ✅ Focus/Reconnect/Interval | ❌ Manual polling           |
+| Optimistic UI     | ✅ Built-in mutate()        | ⚠️ Manual state management  |
+| Error Handling    | ✅ Retry logic              | ❌ Manual error handling    |
+| Loading States    | ✅ Built-in                 | ❌ Manual loading states    |
+| Simplicity        | ✅ Hook-based               | ⚠️ Complex state management |
 
 ### Performance Benefits
 
 **Cache Hit vs Miss:**
+
 - **Cache Hit**: Data served instantly from cache (no network request)
 - **Cache Miss**: Network request triggered, then cached for future use
 
 **Console Logs Showing Cache Usage:**
+
 ```javascript
 // Cache hit - instant loading
 [SWR] Cache hit for key: "/api/users"
@@ -1173,29 +1223,34 @@ Combine SWR with error boundaries for graceful failure handling:
 **Stale-While-Revalidate Trade-offs:**
 
 **Advantages:**
+
 - **Performance**: Instant UI updates from cached data
 - **User Experience**: No loading spinners for cached content
 - **Network Efficiency**: Reduces redundant requests
 - **Offline Resilience**: Cached data works without network
 
 **Challenges:**
+
 - **Data Freshness**: Users might see slightly outdated information
 - **Consistency**: Multiple tabs/windows may show different data
 - **Complexity**: Cache invalidation requires careful management
 
 **When to Use SWR:**
+
 - ✅ User dashboards with frequently accessed data
 - ✅ Lists that don't change often (users, blood banks)
 - ✅ Real-time features with optimistic updates
 - ✅ Applications where UX speed is critical
 
 **When to Use Traditional Fetch:**
+
 - ⚠️ Financial data requiring absolute accuracy
 - ⚠️ Security-critical operations
 - ⚠️ One-time data fetches
 - ⚠️ When cache invalidation is complex
 
 **Best Practices:**
+
 1. **Strategic Revalidation**: Use `revalidateOnFocus` for user-initiated refreshes
 2. **Optimistic Updates**: For mutations, update UI first then sync
 3. **Error Boundaries**: Always wrap SWR components in error boundaries
@@ -1203,6 +1258,7 @@ Combine SWR with error boundaries for graceful failure handling:
 5. **Manual Invalidation**: Use `mutate()` to refresh data after important changes
 
 **Performance Impact:**
+
 - **Before SWR**: Every navigation triggers loading states
 - **After SWR**: Instant page loads with background updates
 - **Result**: 70-90% faster perceived performance for cached data
@@ -1210,12 +1266,14 @@ Combine SWR with error boundaries for graceful failure handling:
 ### SWR Integration in RedConnect
 
 **Implemented Components:**
+
 - ✅ User list with caching (`/app/users/page.tsx`)
 - ✅ Add user with optimistic updates (`/components/AddUser.tsx`)
 - ✅ Blood donation form with inventory updates (`/app/donate/page.tsx`)
 - ✅ Cache debugging utility (`/components/SWRDebug.tsx`)
 
 **API Endpoints with SWR:**
+
 - `GET /api/users` - Cached user list
 - `GET /api/blood-banks` - Cached blood bank data
 - `GET /api/donors` - Cached donor information
@@ -1229,6 +1287,7 @@ Combine SWR with error boundaries for graceful failure handling:
 ## 🤝 Contributing
 
 This project follows a structured development workflow:
+
 1. Create a feature branch from `main`
 2. Make your changes following the folder structure and naming conventions
 3. Test your changes locally
@@ -1277,6 +1336,7 @@ This template helps reviewers quickly understand the purpose and scope of each P
 Every pull request must be reviewed using our shared checklist located at `.github/CODE_REVIEW_CHECKLIST.md`. The checklist includes:
 
 **Code Quality**
+
 - Code follows naming conventions and structure
 - Functionality verified locally
 - No console errors or warnings
@@ -1285,24 +1345,28 @@ Every pull request must be reviewed using our shared checklist located at `.gith
 - Sensitive data is not exposed
 
 **Code Structure**
+
 - Files are organized according to project structure
 - Components are reusable and follow single responsibility principle
 - No duplicate code or unnecessary complexity
 - TypeScript types are properly defined
 
 **Functionality**
+
 - Feature works as expected
 - Edge cases are handled appropriately
 - Error handling is implemented where needed
 - User experience is considered
 
 **Security & Best Practices**
+
 - No hardcoded secrets or API keys
 - Environment variables are used correctly
 - Input validation is implemented
 - No security vulnerabilities introduced
 
 **Performance**
+
 - No unnecessary re-renders
 - Large data sets are handled efficiently
 - Images and assets are optimized
@@ -1334,6 +1398,7 @@ To maintain code quality and prevent direct pushes to the main branch, we have c
    - Prevents merge conflicts and integration issues
 
 **How to Configure:**
+
 1. Go to your GitHub repository
 2. Navigate to **Settings** → **Branches**
 3. Click **Add branch protection rule**
@@ -1346,21 +1411,25 @@ To maintain code quality and prevent direct pushes to the main branch, we have c
 This structured Git workflow helps maintain code quality, collaboration, and velocity in several ways:
 
 **Code Quality**
+
 - **Consistent Standards**: Branch naming conventions make it easy to identify the purpose of each branch at a glance, reducing confusion and improving traceability.
 - **Automated Checks**: Branch protection rules ensure that all code passes linting and builds successfully before merging, catching errors early.
 - **Review Process**: The PR template and review checklist ensure that all code is thoroughly examined, maintaining high standards across the codebase.
 
 **Collaboration**
+
 - **Clear Communication**: PR templates provide a structured way to communicate changes, making it easier for reviewers to understand what was done and why.
 - **Knowledge Sharing**: Code reviews become learning opportunities where team members can share best practices and catch potential issues.
 - **Reduced Conflicts**: Requiring PRs to be up to date before merging prevents integration conflicts and keeps the main branch stable.
 
 **Velocity**
+
 - **Faster Reviews**: Standardized templates and checklists make reviews faster and more efficient, as reviewers know exactly what to look for.
 - **Fewer Bugs**: The review process catches issues before they reach production, reducing the time spent on bug fixes later.
 - **Confidence**: Team members can merge code with confidence, knowing it has been reviewed and tested, which speeds up the development cycle.
 
 **Traceability**
+
 - **Issue Linking**: Linking PRs to issues creates a clear audit trail of what was changed and why.
 - **Branch History**: Consistent naming makes it easy to search and filter branches, improving project management.
 - **Documentation**: PR descriptions serve as documentation of changes, making it easier to understand the evolution of the codebase.
@@ -1378,15 +1447,16 @@ This project is part of a team assignment for Sprint 1.
 **Team**: Team05 - RedConnect  
 **Sprint**: Sprint 1 - Project Initialization & Folder Structure
 
+## Aryan
 
-## Aryan 
 **In Concept 2.10**
- I set up secure environment variable management for the project. I created a .env.local file to store sensitive credentials and a .env.example file to document all required variables with placeholders. I ensured that only variables prefixed with NEXT_PUBLIC_ are accessible on the client side, keeping server secrets secure. I updated .gitignore to prevent environment files from being committed. Finally, I documented the purpose and usage of each variable in the README and avoided common security pitfalls.
+I set up secure environment variable management for the project. I created a .env.local file to store sensitive credentials and a .env.example file to document all required variables with placeholders. I ensured that only variables prefixed with NEXT*PUBLIC* are accessible on the client side, keeping server secrets secure. I updated .gitignore to prevent environment files from being committed. Finally, I documented the purpose and usage of each variable in the README and avoided common security pitfalls.
 
- For 2.15, I implemented Prisma database migrations to keep the PostgreSQL schema version-controlled and consistent across environments. I created and applied migration files using prisma migrate dev and learned how to safely reset and reapply the schema during development. I also built a reusable seed script to populate the database with initial users, hospital data, blood inventory, and emergency requests. This ensures every developer and environment starts with the same structured data.
+For 2.15, I implemented Prisma database migrations to keep the PostgreSQL schema version-controlled and consistent across environments. I created and applied migration files using prisma migrate dev and learned how to safely reset and reapply the schema during development. I also built a reusable seed script to populate the database with initial users, hospital data, blood inventory, and emergency requests. This ensures every developer and environment starts with the same structured data.
 
 ## Bhargav
-In concept 
+
+In concept
 In Concept 2.14, I integrated Prisma ORM into our RedConnect Next.js project and connected it to our PostgreSQL database. I initialized Prisma using npx prisma init, configured the DATABASE_URL, and designed the initial database schema in schema.prisma including core models like User and Project with correct relations, constraints, and defaults.
 
 I then generated the Prisma Client through npx prisma generate and created a reusable Prisma instance in src/lib/prisma.ts to prevent multiple client initializations during development. After setting up the database connection layer, I tested it by writing a sample API route using prisma.user.findMany() to confirm successful communication with PostgreSQL.
@@ -1442,6 +1512,7 @@ All API endpoints in RedConnect use a **unified response handler** that ensures 
 ### Response Format
 
 #### Success Response
+
 Every successful API response follows this standardized format:
 
 ```json
@@ -1456,12 +1527,14 @@ Every successful API response follows this standardized format:
 ```
 
 **Fields:**
+
 - `success` (boolean): Always `true` for successful responses
 - `message` (string): Human-readable success message
 - `data` (any): The actual response payload (varies by endpoint)
 - `timestamp` (string): ISO 8601 timestamp when response was generated
 
 #### Error Response
+
 All error responses follow a consistent structure:
 
 ```json
@@ -1477,6 +1550,7 @@ All error responses follow a consistent structure:
 ```
 
 **Fields:**
+
 - `success` (boolean): Always `false` for error responses
 - `message` (string): User-friendly error description
 - `error.code` (string): Machine-readable error code for programmatic handling
@@ -1487,22 +1561,22 @@ All error responses follow a consistent structure:
 
 The API uses standardized error codes for consistent error handling:
 
-| Code | Description | HTTP Status |
-|------|-------------|-------------|
-| E001 | Validation error - invalid input | 400 |
-| E002 | Missing required field | 400 |
-| E003 | Invalid format or data type | 400 |
-| E004 | Resource not found | 404 |
-| E005 | Donor not found in database | 404 |
-| E006 | Blood bank not found in database | 404 |
-| E007 | Email already exists (duplicate) | 409 |
-| E008 | Duplicate record | 409 |
-| E009 | Blood type mismatch | 400 |
-| E010 | Database operation failed | 500 |
-| E011 | Database connection failure | 500 |
-| E012 | Transaction execution failed | 500 |
-| E500 | Internal server error | 500 |
-| E501 | Unknown error occurred | 500 |
+| Code | Description                      | HTTP Status |
+| ---- | -------------------------------- | ----------- |
+| E001 | Validation error - invalid input | 400         |
+| E002 | Missing required field           | 400         |
+| E003 | Invalid format or data type      | 400         |
+| E004 | Resource not found               | 404         |
+| E005 | Donor not found in database      | 404         |
+| E006 | Blood bank not found in database | 404         |
+| E007 | Email already exists (duplicate) | 409         |
+| E008 | Duplicate record                 | 409         |
+| E009 | Blood type mismatch              | 400         |
+| E010 | Database operation failed        | 500         |
+| E011 | Database connection failure      | 500         |
+| E012 | Transaction execution failed     | 500         |
+| E500 | Internal server error            | 500         |
+| E501 | Unknown error occurred           | 500         |
 
 ### Response Handler Implementation
 
@@ -1543,6 +1617,7 @@ export const sendError = (message, code, status = 500, details?) => {
 The API uses two response structures based on the endpoint type:
 
 **Paginated List Response** (GET endpoints returning multiple items):
+
 ```json
 {
   "success": true,
@@ -1561,6 +1636,7 @@ The API uses two response structures based on the endpoint type:
 ```
 
 **Single Resource Response** (POST/PUT/DELETE endpoints returning single item):
+
 ```json
 {
   "success": true,
@@ -1575,11 +1651,13 @@ The API uses two response structures based on the endpoint type:
 ```
 
 #### Example 1: Successful List Endpoint
+
 ```bash
 curl "http://localhost:3000/api/donors?page=1&limit=5"
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -1606,6 +1684,7 @@ Response:
 ```
 
 #### Example 2: Successful Creation
+
 ```bash
 curl -X POST http://localhost:3000/api/donors \
   -H "Content-Type: application/json" \
@@ -1613,6 +1692,7 @@ curl -X POST http://localhost:3000/api/donors \
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -1629,6 +1709,7 @@ Response:
 ```
 
 #### Example 3: Validation Error
+
 ```bash
 curl -X POST http://localhost:3000/api/donors \
   -H "Content-Type: application/json" \
@@ -1636,6 +1717,7 @@ curl -X POST http://localhost:3000/api/donors \
 ```
 
 Response (400):
+
 ```json
 {
   "success": false,
@@ -1648,6 +1730,7 @@ Response (400):
 ```
 
 #### Example 4: Duplicate Email Error
+
 ```bash
 curl -X POST http://localhost:3000/api/blood-banks \
   -H "Content-Type: application/json" \
@@ -1655,6 +1738,7 @@ curl -X POST http://localhost:3000/api/blood-banks \
 ```
 
 Response (409):
+
 ```json
 {
   "success": false,
@@ -1671,6 +1755,7 @@ Response (409):
 1. **Predictable Responses**: Every endpoint returns the same response structure, making frontend code simpler and more maintainable.
 
 2. **Easier Error Handling**: Standardized error codes enable consistent error handling logic across the entire application:
+
    ```typescript
    if (response.error?.code === "E007") {
      showNotification("Email already exists");
@@ -1709,7 +1794,7 @@ async function fetchDonors(page: number) {
   try {
     const response = await fetch(`/api/donors?page=${page}`);
     const json = await response.json();
-    
+
     if (json.success) {
       // Handle success - structure is always the same
       renderTable(json.data.data);
@@ -1765,6 +1850,7 @@ If invalid → sendValidationError() → Standardized 400 Response
 Validates creation and updates of blood bank records.
 
 **Validation Rules:**
+
 - `name`: 2-100 characters, required
 - `address`: 5-200 characters, required
 - `city`: 2-100 characters, required
@@ -1772,6 +1858,7 @@ Validates creation and updates of blood bank records.
 - `email`: Valid email format, max 100 chars, required and unique
 
 **Example Valid Request:**
+
 ```json
 {
   "name": "City Blood Bank",
@@ -1783,6 +1870,7 @@ Validates creation and updates of blood bank records.
 ```
 
 **Example Invalid Request (missing field):**
+
 ```json
 {
   "name": "BC"
@@ -1790,6 +1878,7 @@ Validates creation and updates of blood bank records.
 ```
 
 **Response (400):**
+
 ```json
 {
   "success": false,
@@ -1831,6 +1920,7 @@ Validates creation and updates of blood bank records.
 Validates donor registration with comprehensive health & safety checks.
 
 **Validation Rules:**
+
 - `name`: 2-100 characters, required
 - `email`: Valid email format, max 100 chars, required and unique
 - `phone`: Valid phone format (7-15 digits), required
@@ -1840,11 +1930,13 @@ Validates donor registration with comprehensive health & safety checks.
 - `city`: 2-100 characters, required
 
 **Key Features:**
+
 - Custom age validation: Ensures donors are at least 18 years old
 - Blood type enum constraint: Only valid blood types accepted
 - Phone format validation: Supports international formats
 
 **Example Valid Request (with age check):**
+
 ```json
 {
   "name": "Jane Smith",
@@ -1858,6 +1950,7 @@ Validates donor registration with comprehensive health & safety checks.
 ```
 
 **Example Invalid Request (minor trying to donate):**
+
 ```json
 {
   "name": "John Doe",
@@ -1871,6 +1964,7 @@ Validates donor registration with comprehensive health & safety checks.
 ```
 
 **Response (400) - Age validation failure:**
+
 ```json
 {
   "success": false,
@@ -1896,6 +1990,7 @@ Validates donor registration with comprehensive health & safety checks.
 Validates blood donation records with inventory management.
 
 **Validation Rules:**
+
 - `donorId`: Valid UUID format, required
 - `bloodBankId`: Valid UUID format, required
 - `units`: Positive number, max 5 units per donation, required
@@ -1903,6 +1998,7 @@ Validates blood donation records with inventory management.
 - `notes`: Optional, max 500 characters
 
 **Example Valid Request:**
+
 ```json
 {
   "donorId": "81ea37ba-9262-4d33-8a57-1f8acc4277e6",
@@ -1914,6 +2010,7 @@ Validates blood donation records with inventory management.
 ```
 
 **Example Invalid Request (units exceed limit):**
+
 ```json
 {
   "donorId": "81ea37ba-9262-4d33-8a57-1f8acc4277e6",
@@ -1924,6 +2021,7 @@ Validates blood donation records with inventory management.
 ```
 
 **Response (400):**
+
 ```json
 {
   "success": false,
@@ -1971,6 +2069,7 @@ All validation errors return **400 Bad Request** with consistent structure:
 ### Validation Implementation Details
 
 **File Structure:**
+
 ```
 src/lib/
 ├── schemas/
@@ -1992,7 +2091,7 @@ export async function POST(req: Request) {
   try {
     // ✓ Validate input with Zod schema
     const validatedData = bloodBankCreateSchema.parse(parsed.data);
-    
+
     // ✓ Create database record with validated data
     const bloodBank = await prisma.bloodBank.create({
       data: validatedData,
@@ -2005,13 +2104,26 @@ export async function POST(req: Request) {
     if (err instanceof ZodError) {
       return sendValidationError(err);
     }
-    
+
     // ✓ Handle specific database errors
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return sendError("Email already exists", ERROR_CODES.DUPLICATE_EMAIL, 409, err);
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return sendError(
+        "Email already exists",
+        ERROR_CODES.DUPLICATE_EMAIL,
+        409,
+        err
+      );
     }
-    
-    return sendError("Failed to create blood bank", ERROR_CODES.DATABASE_ERROR, 500, err);
+
+    return sendError(
+      "Failed to create blood bank",
+      ERROR_CODES.DATABASE_ERROR,
+      500,
+      err
+    );
   }
 }
 ```
@@ -2058,17 +2170,20 @@ curl -X POST http://localhost:3000/api/blood-donation \
 **Purpose:** Retrieve all registered blood banks with optional filtering and pagination.
 
 **Query Parameters:**
+
 - `page` (optional, default: 1): Page number
 - `limit` (optional, default: 10, max: 100): Items per page
 - `city` (optional): Filter by city name (case-insensitive)
 - `bloodType` (optional): Filter by available blood type
 
 **Example Request:**
+
 ```bash
 curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5&city=Mumbai"
 ```
 
 **Successful Response (200):**
+
 ```json
 {
   "success": true,
@@ -2106,6 +2221,7 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5&city=Mumbai"
 ```
 
 **Error Response (500):**
+
 ```json
 {
   "success": false,
@@ -2124,6 +2240,7 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5&city=Mumbai"
 **Purpose:** Register a new blood bank in the system.
 
 **Required Fields:**
+
 - `name` (string): Blood bank name
 - `address` (string): Physical address
 - `city` (string): City/Region
@@ -2131,6 +2248,7 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5&city=Mumbai"
 - `email` (string, unique): Email address
 
 **Example Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/blood-banks \
   -H "Content-Type: application/json" \
@@ -2144,6 +2262,7 @@ curl -X POST http://localhost:3000/api/blood-banks \
 ```
 
 **Successful Response (201):**
+
 ```json
 {
   "success": true,
@@ -2163,6 +2282,7 @@ curl -X POST http://localhost:3000/api/blood-banks \
 ```
 
 **Error Response (409):**
+
 ```json
 {
   "success": false,
@@ -2175,6 +2295,7 @@ curl -X POST http://localhost:3000/api/blood-banks \
 ```
 
 **Error Response (400):**
+
 ```json
 {
   "success": false,
@@ -2187,6 +2308,7 @@ curl -X POST http://localhost:3000/api/blood-banks \
 ```
 
 **Error Response (400):**
+
 ```json
 {
   "error": {
@@ -2202,6 +2324,7 @@ curl -X POST http://localhost:3000/api/blood-banks \
 **Purpose:** Retrieve donor records with filtering and pagination.
 
 **Query Parameters:**
+
 - `page` (optional, default: 1): Page number
 - `limit` (optional, default: 10, max: 100): Items per page
 - `bloodType` (optional): Filter by blood type (e.g., "A+", "B-", "O+")
@@ -2209,11 +2332,13 @@ curl -X POST http://localhost:3000/api/blood-banks \
 - `isActive` (optional): Filter by active status ("true" or "false")
 
 **Example Request:**
+
 ```bash
 curl -X GET "http://localhost:3000/api/donors?bloodType=A+&city=Mumbai&page=1&limit=10"
 ```
 
 **Successful Response (200):**
+
 ```json
 {
   "success": true,
@@ -2252,6 +2377,7 @@ curl -X GET "http://localhost:3000/api/donors?bloodType=A+&city=Mumbai&page=1&li
 **Purpose:** Register a new blood donor in the system.
 
 **Required Fields:**
+
 - `name` (string): Donor full name
 - `email` (string, unique): Email address
 - `phone` (string): Phone number
@@ -2261,6 +2387,7 @@ curl -X GET "http://localhost:3000/api/donors?bloodType=A+&city=Mumbai&page=1&li
 - `city` (string): City/Region
 
 **Example Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/donors \
   -H "Content-Type: application/json" \
@@ -2276,6 +2403,7 @@ curl -X POST http://localhost:3000/api/donors \
 ```
 
 **Successful Response (201):**
+
 ```json
 {
   "success": true,
@@ -2298,6 +2426,7 @@ curl -X POST http://localhost:3000/api/donors \
 ```
 
 **Error Response (400):**
+
 ```json
 {
   "success": false,
@@ -2316,6 +2445,7 @@ curl -X POST http://localhost:3000/api/donors \
 **Purpose:** Record a blood donation from a donor to a blood bank with atomic transaction handling.
 
 **Required Fields:**
+
 - `donorId` (string, UUID): Donor ID
 - `bloodBankId` (string, UUID): Blood Bank ID
 - `units` (number): Units of blood donated (must be > 0)
@@ -2323,14 +2453,16 @@ curl -X POST http://localhost:3000/api/donors \
 - `notes` (optional, string): Additional notes
 
 **Transaction Behavior:**
+
 - Verifies donor exists
-- Verifies blood bank exists  
+- Verifies blood bank exists
 - Validates blood type matches donor's type
 - Creates donation record
 - Updates blood bank inventory (upsert)
 - All operations atomic — rollback on any failure
 
 **Example Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/blood-donation \
   -H "Content-Type: application/json" \
@@ -2343,6 +2475,7 @@ curl -X POST http://localhost:3000/api/blood-donation \
 ```
 
 **Successful Response (201):**
+
 ```json
 {
   "donation": {
@@ -2366,6 +2499,7 @@ curl -X POST http://localhost:3000/api/blood-donation \
 ```
 
 **Successful Response (201) - Full Format:**
+
 ```json
 {
   "success": true,
@@ -2394,6 +2528,7 @@ curl -X POST http://localhost:3000/api/blood-donation \
 ```
 
 **Error Response (404):**
+
 ```json
 {
   "success": false,
@@ -2406,6 +2541,7 @@ curl -X POST http://localhost:3000/api/blood-donation \
 ```
 
 **Error Response (400):**
+
 ```json
 {
   "success": false,
@@ -2448,16 +2584,17 @@ Calculation:
 
 ### Error Handling & HTTP Status Codes
 
-| Status | Meaning | Example |
-|--------|---------|---------|
-| 200 | ✅ Success (GET) | Data retrieved successfully |
-| 201 | ✅ Created (POST) | Resource created successfully |
-| 400 | ❌ Bad Request | Missing/invalid required fields |
-| 404 | ❌ Not Found | Resource does not exist |
-| 409 | ❌ Conflict | Duplicate email or unique constraint violation |
-| 500 | ❌ Server Error | Database connection issue, unexpected error |
+| Status | Meaning           | Example                                        |
+| ------ | ----------------- | ---------------------------------------------- |
+| 200    | ✅ Success (GET)  | Data retrieved successfully                    |
+| 201    | ✅ Created (POST) | Resource created successfully                  |
+| 400    | ❌ Bad Request    | Missing/invalid required fields                |
+| 404    | ❌ Not Found      | Resource does not exist                        |
+| 409    | ❌ Conflict       | Duplicate email or unique constraint violation |
+| 500    | ❌ Server Error   | Database connection issue, unexpected error    |
 
 **Error Response Format:**
+
 ```json
 {
   "error": {
@@ -2472,29 +2609,34 @@ Calculation:
 ## 💡 Why RESTful Structure & Naming Conventions Matter
 
 ### 1. **Scalability & Maintainability**
-   - **Consistent naming** (`/api/blood-banks`, `/api/donors`) makes it easy to add new resources
-   - Developers can understand the pattern and implement new endpoints quickly
-   - Clear folder hierarchy prevents "spaghetti" router code
+
+- **Consistent naming** (`/api/blood-banks`, `/api/donors`) makes it easy to add new resources
+- Developers can understand the pattern and implement new endpoints quickly
+- Clear folder hierarchy prevents "spaghetti" router code
 
 ### 2. **Team Collaboration**
-   - **Predictable endpoints** reduce confusion and documentation overhead
-   - Using HTTP verbs correctly (GET for fetch, POST for create) is intuitive
-   - Clear naming conventions minimize naming conflicts and race conditions in PRs
+
+- **Predictable endpoints** reduce confusion and documentation overhead
+- Using HTTP verbs correctly (GET for fetch, POST for create) is intuitive
+- Clear naming conventions minimize naming conflicts and race conditions in PRs
 
 ### 3. **Reduced Bugs & Errors**
-   - Plural nouns for collections (`/api/donors` not `/api/donor`) prevent endpoint confusion
-   - Consistent error responses make client-side error handling straightforward
-   - Transaction handling in blood donation ensures data consistency
+
+- Plural nouns for collections (`/api/donors` not `/api/donor`) prevent endpoint confusion
+- Consistent error responses make client-side error handling straightforward
+- Transaction handling in blood donation ensures data consistency
 
 ### 4. **Professional Standards**
-   - Follows industry-standard REST principles (RFC 7231, OpenAPI standards)
-   - Makes the API documentation self-explanatory
-   - Easier to generate OpenAPI/Swagger specs for auto-documentation
+
+- Follows industry-standard REST principles (RFC 7231, OpenAPI standards)
+- Makes the API documentation self-explanatory
+- Easier to generate OpenAPI/Swagger specs for auto-documentation
 
 ### 5. **Client-Side Development**
-   - Developers can predict endpoints without always consulting documentation
-   - Pagination parameters follow common patterns
-   - Filtering parameters are logically named and consistently implemented
+
+- Developers can predict endpoints without always consulting documentation
+- Pagination parameters follow common patterns
+- Filtering parameters are logically named and consistently implemented
 
 ### Example: How Structure Scales
 
@@ -2524,6 +2666,7 @@ Every new developer can immediately understand the pattern and contribute confid
 ## 🧪 Testing the API
 
 ### Prerequisites
+
 ```bash
 npm install
 npx prisma db push --force-reset
@@ -2570,10 +2713,10 @@ RedConnect implements comprehensive authorization middleware to enforce role-bas
 
 ### Authentication vs Authorization
 
-| Concept | Acronym | Definition | Example |
-|---------|---------|-----------|---------|
-| **Authentication** | AuthN | Verifying who the user is | User logs in with email/password |
-| **Authorization** | AuthZ | Determining what user can do | Only admins can access /api/admin |
+| Concept            | Acronym | Definition                   | Example                           |
+| ------------------ | ------- | ---------------------------- | --------------------------------- |
+| **Authentication** | AuthN   | Verifying who the user is    | User logs in with email/password  |
+| **Authorization**  | AuthZ   | Determining what user can do | Only admins can access /api/admin |
 
 While authentication answers "Who are you?", authorization answers "What are you allowed to do?"
 
@@ -2581,11 +2724,11 @@ While authentication answers "Who are you?", authorization answers "What are you
 
 We've defined three core roles in the system:
 
-| Role | Description | Permissions |
-|------|-------------|-------------|
-| **DONOR** | Regular blood donor | Can view user list, manage own profile |
-| **HOSPITAL** | Blood bank/hospital | Can manage blood inventory, view donors |
-| **ADMIN** | System administrator | Full access to all routes, user management |
+| Role         | Description          | Permissions                                |
+| ------------ | -------------------- | ------------------------------------------ |
+| **DONOR**    | Regular blood donor  | Can view user list, manage own profile     |
+| **HOSPITAL** | Blood bank/hospital  | Can manage blood inventory, view donors    |
+| **ADMIN**    | System administrator | Full access to all routes, user management |
 
 ### Middleware Architecture
 
@@ -2600,6 +2743,7 @@ The middleware intercepts all incoming requests and:
 5. **Enforces access** - Grants or denies access based on role match
 
 **Request Flow Diagram:**
+
 ```
 Incoming Request
     ↓
@@ -2630,10 +2774,10 @@ The middleware defines which roles can access which routes:
 
 ```typescript
 const ROLE_BASED_ROUTES: Record<string, string[]> = {
-  "/api/admin": ["ADMIN"],                          // Admin only
-  "/api/admin/users": ["ADMIN"],                    // Admin only
-  "/api/admin/reports": ["ADMIN"],                  // Admin only
-  "/api/users": ["DONOR", "ADMIN", "HOSPITAL"],    // All authenticated users
+  "/api/admin": ["ADMIN"], // Admin only
+  "/api/admin/users": ["ADMIN"], // Admin only
+  "/api/admin/reports": ["ADMIN"], // Admin only
+  "/api/users": ["DONOR", "ADMIN", "HOSPITAL"], // All authenticated users
 };
 ```
 
@@ -2656,12 +2800,14 @@ The following routes **do not require authentication**:
 **Access:** ADMIN only
 
 **Request:**
+
 ```bash
 curl -X GET http://localhost:3000/api/admin \
   -H "Authorization: Bearer <ADMIN_JWT_TOKEN>"
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -2687,6 +2833,7 @@ curl -X GET http://localhost:3000/api/admin \
 ```
 
 **Access Denied Response (403):**
+
 ```json
 {
   "success": false,
@@ -2705,6 +2852,7 @@ curl -X GET http://localhost:3000/api/admin \
 **Access:** DONOR, HOSPITAL, ADMIN
 
 **Request with JWT:**
+
 ```bash
 # Get token from login endpoint first
 TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
@@ -2717,6 +2865,7 @@ curl -X GET http://localhost:3000/api/users \
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -2744,11 +2893,11 @@ curl -X GET http://localhost:3000/api/users \
 
 ### Error Codes for Authorization
 
-| Code | Status | Message | When |
-|------|--------|---------|------|
-| **E103** | 401 | Authorization token required | Missing Authorization header |
-| **E104** | 403 | Invalid or expired token | JWT verification failed |
-| **E105** | 403 | Access denied - insufficient permissions | User role doesn't match required roles |
+| Code     | Status | Message                                  | When                                   |
+| -------- | ------ | ---------------------------------------- | -------------------------------------- |
+| **E103** | 401    | Authorization token required             | Missing Authorization header           |
+| **E104** | 403    | Invalid or expired token                 | JWT verification failed                |
+| **E105** | 403    | Access denied - insufficient permissions | User role doesn't match required roles |
 
 ### Testing Authorization Scenarios
 
@@ -2854,8 +3003,8 @@ curl -X GET http://localhost:3000/api/users \
 // In src/middleware.ts
 const ROLE_BASED_ROUTES: Record<string, string[]> = {
   "/api/admin": ["ADMIN"],
-  "/api/reports": ["ADMIN", "MODERATOR"],  // NEW
-  "/api/users": ["DONOR", "ADMIN", "HOSPITAL", "MODERATOR"],  // NEW
+  "/api/reports": ["ADMIN", "MODERATOR"], // NEW
+  "/api/users": ["DONOR", "ADMIN", "HOSPITAL", "MODERATOR"], // NEW
 };
 ```
 
@@ -2877,16 +3026,17 @@ RedConnect implements a centralized error handling system to ensure consistent, 
 
 Modern web applications fail in many ways — database timeouts, API errors, validation failures, authentication issues, etc. A centralized error handler ensures:
 
-| Benefit | Impact |
-|---------|--------|
-| **Consistency** | Every error follows the same response format |
-| **Security** | Stack traces and sensitive data hidden in production |
-| **Observability** | Structured logs for easier debugging and monitoring |
-| **Maintainability** | Single place to update error handling logic |
+| Benefit             | Impact                                               |
+| ------------------- | ---------------------------------------------------- |
+| **Consistency**     | Every error follows the same response format         |
+| **Security**        | Stack traces and sensitive data hidden in production |
+| **Observability**   | Structured logs for easier debugging and monitoring  |
+| **Maintainability** | Single place to update error handling logic          |
 
 ### Error Handling Architecture
 
 **Files:**
+
 - `/src/lib/logger.ts` - Structured logging utility
 - `/src/lib/errorHandler.ts` - Centralized error handler functions
 - `/src/app/api/test-error/route.ts` - Error testing endpoint
@@ -2907,6 +3057,7 @@ export const logger = {
 ```
 
 **Log Format:**
+
 ```json
 {
   "level": "error",
@@ -2932,36 +3083,38 @@ export function handleError(
   error: unknown,
   context: string,
   status: number = 500
-): NextResponse
+): NextResponse;
 
 // Type-safe error handler for custom errors
-export function handleTypedError(appError: AppError): NextResponse
+export function handleTypedError(appError: AppError): NextResponse;
 
 // Async wrapper to eliminate repetitive try-catch
 export async function asyncHandler(
   handler: () => Promise<NextResponse>,
   context: string
-): Promise<NextResponse>
+): Promise<NextResponse>;
 ```
 
 ### 3. Development vs Production Error Responses
 
 **Key Difference:**
 
-| Scenario | Development | Production |
-|----------|-------------|-----------|
-| Stack Trace | ✅ Shown in response | 🔒 Logged only, not sent |
-| Error Details | ✅ Full message shown | 🔒 Generic message sent |
-| Debugging | ✅ Easy with full info | ✅ Logs available for team |
-| User Trust | - | ✅ Safe, minimal info |
+| Scenario      | Development            | Production                 |
+| ------------- | ---------------------- | -------------------------- |
+| Stack Trace   | ✅ Shown in response   | 🔒 Logged only, not sent   |
+| Error Details | ✅ Full message shown  | 🔒 Generic message sent    |
+| Debugging     | ✅ Easy with full info | ✅ Logs available for team |
+| User Trust    | -                      | ✅ Safe, minimal info      |
 
 #### Development Mode Response:
+
 ```bash
 NODE_ENV=development
 curl http://localhost:3000/api/test-error?type=database
 ```
 
 **Response:**
+
 ```json
 {
   "success": false,
@@ -2975,6 +3128,7 @@ curl http://localhost:3000/api/test-error?type=database
 ```
 
 **Console Log:**
+
 ```json
 {
   "level": "error",
@@ -2990,12 +3144,14 @@ curl http://localhost:3000/api/test-error?type=database
 ```
 
 #### Production Mode Response:
+
 ```bash
 NODE_ENV=production
 curl http://localhost:3000/api/test-error?type=database
 ```
 
 **Response (Safe, No Details):**
+
 ```json
 {
   "success": false,
@@ -3008,6 +3164,7 @@ curl http://localhost:3000/api/test-error?type=database
 ```
 
 **Console Log (Full Details Still Logged):**
+
 ```json
 {
   "level": "error",
@@ -3056,6 +3213,7 @@ curl http://localhost:3000/api/test-error?type=notfound
 ### 5. Using Error Handler in Routes
 
 **Basic Usage:**
+
 ```typescript
 import { handleError } from "@/lib/errorHandler";
 import { logger } from "@/lib/logger";
@@ -3072,13 +3230,14 @@ export async function GET(req: Request) {
 ```
 
 **Type-Safe Usage:**
+
 ```typescript
 import { handleTypedError } from "@/lib/errorHandler";
 
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    
+
     if (!data.email) {
       return handleTypedError({
         message: "Email is required",
@@ -3087,7 +3246,7 @@ export async function POST(req: Request) {
         context: "POST /api/users",
       });
     }
-    
+
     // ... rest of logic
   } catch (error) {
     return handleError(error, "POST /api/users");
@@ -3096,6 +3255,7 @@ export async function POST(req: Request) {
 ```
 
 **Async Wrapper Usage (Cleanest):**
+
 ```typescript
 import { asyncHandler } from "@/lib/errorHandler";
 
@@ -3112,16 +3272,17 @@ export async function GET(req: Request) {
 
 RedConnect uses a hierarchical error classification:
 
-| Error Type | Status | Code Pattern | Example |
-|-----------|--------|--------------|---------|
-| Validation | 400 | E00x | E001, E002, E003 |
-| Authentication | 401 | E10x | E103, E104 |
-| Authorization | 403 | E10x | E105 |
-| Not Found | 404 | E00x | E004, E005, E006 |
-| Conflict/Duplicate | 409 | E00x | E007, E008, E009 |
-| Server Error | 500 | E5xx | E500, E501 |
+| Error Type         | Status | Code Pattern | Example          |
+| ------------------ | ------ | ------------ | ---------------- |
+| Validation         | 400    | E00x         | E001, E002, E003 |
+| Authentication     | 401    | E10x         | E103, E104       |
+| Authorization      | 403    | E10x         | E105             |
+| Not Found          | 404    | E00x         | E004, E005, E006 |
+| Conflict/Duplicate | 409    | E00x         | E007, E008, E009 |
+| Server Error       | 500    | E5xx         | E500, E501       |
 
 **Error Codes Reference:**
+
 - **E001-E003:** Validation errors (missing fields, invalid format)
 - **E004-E006:** Not found errors (resource doesn't exist)
 - **E007-E009:** Conflict errors (duplicates, mismatches)
@@ -3155,6 +3316,7 @@ RedConnect uses a hierarchical error classification:
 ### 8. Debugging with Structured Logs
 
 **Finding Errors:**
+
 ```bash
 # Search logs for all errors
 grep '"level":"error"' logs.json
@@ -3170,6 +3332,7 @@ grep '2026-02-09' logs.json | grep error
 ```
 
 **Log Analysis Example:**
+
 ```json
 {
   "level": "error",
@@ -3186,6 +3349,7 @@ grep '2026-02-09' logs.json | grep error
 ```
 
 **Debugging Steps:**
+
 1. Look at timestamp to correlate with user reports
 2. Check error message for root cause
 3. Review stack trace (dev) or search logs (prod) for context
@@ -3198,14 +3362,18 @@ grep '2026-02-09' logs.json | grep error
 ✅ **Safe Error Messages:** Generic messages prevent attackers from learning system internals  
 ✅ **Full Logging:** Developers still get complete information for debugging  
 ✅ **Audit Trail:** All errors logged with timestamp for compliance  
-✅ **Environment-Aware:** Development and production have different behaviors  
+✅ **Environment-Aware:** Development and production have different behaviors
 
 ### 10. Future Extensions
 
 **Adding Custom Error Types:**
+
 ```typescript
 class ValidationError extends Error {
-  constructor(public field: string, message: string) {
+  constructor(
+    public field: string,
+    message: string
+  ) {
     super(message);
   }
 }
@@ -3221,6 +3389,7 @@ if (error instanceof ValidationError) {
 ```
 
 **Adding Error Tracking Service:**
+
 ```typescript
 // Send errors to external service (e.g., Sentry, LogRocket)
 logger.error(message, meta, stack);
@@ -3233,76 +3402,77 @@ if (isProd) {
 
 ## 📝 Complete API Endpoint Summary
 
-
 ### Blood Management Endpoints
 
-| Method | Route | Purpose | Auth Required | Status |
-|--------|-------|---------|---------------|--------|
-| GET | `/api/blood-banks` | List all blood banks with pagination | ❌ No | ✅ LIVE |
-| POST | `/api/blood-banks` | Create new blood bank | ❌ No | ✅ LIVE |
-| GET | `/api/blood-banks/[id]` | Get blood bank by ID | ❌ No | ✅ LIVE |
-| PATCH | `/api/blood-banks/[id]` | Update blood bank | ❌ No | ✅ LIVE |
-| DELETE | `/api/blood-banks/[id]` | Delete blood bank | ❌ No | ✅ LIVE |
+| Method | Route                   | Purpose                              | Auth Required | Status  |
+| ------ | ----------------------- | ------------------------------------ | ------------- | ------- |
+| GET    | `/api/blood-banks`      | List all blood banks with pagination | ❌ No         | ✅ LIVE |
+| POST   | `/api/blood-banks`      | Create new blood bank                | ❌ No         | ✅ LIVE |
+| GET    | `/api/blood-banks/[id]` | Get blood bank by ID                 | ❌ No         | ✅ LIVE |
+| PATCH  | `/api/blood-banks/[id]` | Update blood bank                    | ❌ No         | ✅ LIVE |
+| DELETE | `/api/blood-banks/[id]` | Delete blood bank                    | ❌ No         | ✅ LIVE |
 
 ### Donor Management Endpoints
 
-| Method | Route | Purpose | Auth Required | Status |
-|--------|-------|---------|---------------|--------|
-| GET | `/api/donors` | List all donors with filters | ❌ No | ✅ LIVE |
-| POST | `/api/donors` | Create new donor | ❌ No | ✅ LIVE |
-| GET | `/api/donors/[id]` | Get donor by ID | ❌ No | ✅ LIVE |
-| PATCH | `/api/donors/[id]` | Update donor | ❌ No | ✅ LIVE |
-| DELETE | `/api/donors/[id]` | Delete donor | ❌ No | ✅ LIVE |
+| Method | Route              | Purpose                      | Auth Required | Status  |
+| ------ | ------------------ | ---------------------------- | ------------- | ------- |
+| GET    | `/api/donors`      | List all donors with filters | ❌ No         | ✅ LIVE |
+| POST   | `/api/donors`      | Create new donor             | ❌ No         | ✅ LIVE |
+| GET    | `/api/donors/[id]` | Get donor by ID              | ❌ No         | ✅ LIVE |
+| PATCH  | `/api/donors/[id]` | Update donor                 | ❌ No         | ✅ LIVE |
+| DELETE | `/api/donors/[id]` | Delete donor                 | ❌ No         | ✅ LIVE |
 
 ### Blood Donation Endpoints
 
-| Method | Route | Purpose | Auth Required | Status |
-|--------|-------|---------|---------------|--------|
-| POST | `/api/blood-donation` | Record new donation | ❌ No | ✅ LIVE |
-| GET | `/api/blood-donation` | List all donations | ❌ No | ✅ LIVE |
+| Method | Route                 | Purpose             | Auth Required | Status  |
+| ------ | --------------------- | ------------------- | ------------- | ------- |
+| POST   | `/api/blood-donation` | Record new donation | ❌ No         | ✅ LIVE |
+| GET    | `/api/blood-donation` | List all donations  | ❌ No         | ✅ LIVE |
 
 ### Authentication Endpoints
 
-| Method | Route | Purpose | Auth Required | Status |
-|--------|-------|---------|---------------|--------|
-| POST | `/api/auth/signup` | User registration with password hashing | ❌ No | ✅ LIVE |
-| POST | `/api/auth/login` | User authentication with JWT token | ❌ No | ✅ LIVE |
+| Method | Route              | Purpose                                 | Auth Required | Status  |
+| ------ | ------------------ | --------------------------------------- | ------------- | ------- |
+| POST   | `/api/auth/signup` | User registration with password hashing | ❌ No         | ✅ LIVE |
+| POST   | `/api/auth/login`  | User authentication with JWT token      | ❌ No         | ✅ LIVE |
 
 ### User Management Endpoints
 
-| Method | Route | Purpose | Auth Required | Required Role | Status |
-|--------|-------|---------|---------------|---------------|--------|
-| GET | `/api/users` | List all users | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
-| POST | `/api/users` | Create new user | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
-| GET | `/api/users/[id]` | Get user by ID | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
-| PATCH | `/api/users/[id]` | Update user | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
-| DELETE | `/api/users/[id]` | Delete user | ✅ Yes | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| Method | Route             | Purpose         | Auth Required | Required Role          | Status  |
+| ------ | ----------------- | --------------- | ------------- | ---------------------- | ------- |
+| GET    | `/api/users`      | List all users  | ✅ Yes        | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| POST   | `/api/users`      | Create new user | ✅ Yes        | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| GET    | `/api/users/[id]` | Get user by ID  | ✅ Yes        | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| PATCH  | `/api/users/[id]` | Update user     | ✅ Yes        | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
+| DELETE | `/api/users/[id]` | Delete user     | ✅ Yes        | DONOR, HOSPITAL, ADMIN | ✅ LIVE |
 
 ### Admin Endpoints
 
-| Method | Route | Purpose | Auth Required | Required Role | Status |
-|--------|-------|---------|---------------|---------------|--------|
-| GET | `/api/admin` | Admin dashboard | ✅ Yes | ADMIN | ✅ LIVE |
-| GET | `/api/admin/users` | View all users (admin) | ✅ Yes | ADMIN | ⏳ Planned |
-| GET | `/api/admin/reports` | View system reports | ✅ Yes | ADMIN | ⏳ Planned |
+| Method | Route                | Purpose                | Auth Required | Required Role | Status     |
+| ------ | -------------------- | ---------------------- | ------------- | ------------- | ---------- |
+| GET    | `/api/admin`         | Admin dashboard        | ✅ Yes        | ADMIN         | ✅ LIVE    |
+| GET    | `/api/admin/users`   | View all users (admin) | ✅ Yes        | ADMIN         | ⏳ Planned |
+| GET    | `/api/admin/reports` | View system reports    | ✅ Yes        | ADMIN         | ⏳ Planned |
 
 ### Utility Endpoints
 
-| Method | Route | Purpose | Auth Required | Status |
-|--------|-------|---------|---------------|--------|
-| GET | `/api/test` | Health check endpoint | ❌ No | ✅ LIVE |
+| Method | Route       | Purpose               | Auth Required | Status  |
+| ------ | ----------- | --------------------- | ------------- | ------- |
+| GET    | `/api/test` | Health check endpoint | ❌ No         | ✅ LIVE |
 
 ---
 
 ## 🎯 Key Implementation Highlights
 
 ### Data Validation
+
 - ✅ All inputs validated using Zod schemas
 - ✅ Type-safe validation with TypeScript integration
 - ✅ Custom error messages for each validation failure
 - ✅ Comprehensive error responses
 
 ### Security
+
 - ✅ Bcrypt password hashing (10 salt rounds)
 - ✅ JWT token-based authentication
 - ✅ Role-based access control (RBAC)
@@ -3310,6 +3480,7 @@ if (isProd) {
 - ✅ Protected routes with middleware
 
 ### API Design
+
 - ✅ RESTful endpoint structure
 - ✅ Proper HTTP status codes
 - ✅ Pagination support (page, limit, totalPages)
@@ -3317,6 +3488,7 @@ if (isProd) {
 - ✅ Atomic transactions for complex operations
 
 ### Response Format
+
 - ✅ Standardized success/error responses
 - ✅ Consistent error code mapping
 - ✅ Timestamp in all responses
@@ -3329,23 +3501,27 @@ if (isProd) {
 ### 1. Setup Environment Variables
 
 Create `.env.local`:
+
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/redconnect"
 JWT_SECRET="your-super-secret-key-change-in-production"
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Setup Database
+
 ```bash
 npx prisma db push
 npx prisma db seed
 ```
 
 ### 4. Run Development Server
+
 ```bash
 npm run dev
 ```
@@ -3372,8 +3548,3 @@ This project is licensed under the MIT License.
 
 **Last Updated:** 9 February 2026  
 **Version:** 1.0.0 (All 5 Assessments Complete)
-
-
-
-
-

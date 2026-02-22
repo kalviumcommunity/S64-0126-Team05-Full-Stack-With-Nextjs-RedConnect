@@ -10,8 +10,10 @@ export default function Header() {
         <Link href="/">Home</Link>
         <Link href="/dashboard">Dashboard</Link>
         <Link href="/users">Users</Link>
+        <Link href="/donate">Donate</Link>
+        <Link href="/contact">Contact</Link>
+        <Link href="/login">Login</Link>
       </nav>
     </header>
   );
 }
-

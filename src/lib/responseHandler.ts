@@ -74,7 +74,10 @@ export const sendError = (
   };
 
   if (process.env.NODE_ENV === "development" && details) {
-    errorResponse.error.details = details instanceof Error ? { message: details.message } : (details as Record<string, unknown>);
+    errorResponse.error.details =
+      details instanceof Error
+        ? { message: details.message }
+        : (details as Record<string, unknown>);
   }
 
   return NextResponse.json(errorResponse, { status });

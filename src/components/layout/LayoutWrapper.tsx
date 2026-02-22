@@ -14,4 +14,3 @@ export default function LayoutWrapper({ children }: { children: ReactNode }) {
     </div>
   );
 }
-

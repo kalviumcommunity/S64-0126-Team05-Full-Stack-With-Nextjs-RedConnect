@@ -5,12 +5,8 @@ import { z } from "zod";
  * Validates all required fields for recording a blood donation
  */
 export const bloodDonationCreateSchema = z.object({
-  donorId: z
-    .string()
-    .uuid("Donor ID must be a valid UUID"),
-  bloodBankId: z
-    .string()
-    .uuid("Blood Bank ID must be a valid UUID"),
+  donorId: z.string().uuid("Donor ID must be a valid UUID"),
+  bloodBankId: z.string().uuid("Blood Bank ID must be a valid UUID"),
   units: z
     .number()
     .positive("Units must be greater than 0")
@@ -19,7 +15,9 @@ export const bloodDonationCreateSchema = z.object({
     .enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])
     .transform((val) => {
       if (!["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].includes(val)) {
-        throw new Error("Invalid blood type. Valid types are: A+, A-, B+, B-, AB+, AB-, O+, O-");
+        throw new Error(
+          "Invalid blood type. Valid types are: A+, A-, B+, B-, AB+, AB-, O+, O-"
+        );
       }
       return val;
     }),
@@ -32,4 +30,6 @@ export const bloodDonationCreateSchema = z.object({
 /**
  * Extract TypeScript type from schema for type-safe usage
  */
-export type BloodDonationCreateInput = z.infer<typeof bloodDonationCreateSchema>;
+export type BloodDonationCreateInput = z.infer<
+  typeof bloodDonationCreateSchema
+>;

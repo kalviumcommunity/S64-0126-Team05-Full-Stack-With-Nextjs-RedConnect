@@ -25,11 +25,11 @@ export default function SWRDebug() {
     try {
       const data = cache.get(key);
       if (!data) return "No data";
-      
+
       const stringified = JSON.stringify(data, null, 2);
       const isTruncated = stringified.length > 200;
       const preview = stringified.substring(0, 200);
-      
+
       return isTruncated ? preview + "..." : preview;
     } catch {
       return "Error reading cache";
@@ -71,7 +71,9 @@ export default function SWRDebug() {
       <div className="space-y-2">
         {cacheKeys.map((key) => (
           <div key={key} className="border border-gray-200 rounded p-2">
-            <div className="text-xs font-medium text-gray-700 truncate">{key}</div>
+            <div className="text-xs font-medium text-gray-700 truncate">
+              {key}
+            </div>
             <div className="text-xs text-gray-500 mt-1">
               {getCacheData(key)}
             </div>
@@ -89,7 +91,7 @@ export default function SWRDebug() {
         <button
           onClick={() => {
             // Clear all cached data by deleting each key
-            cacheKeys.forEach(key => {
+            cacheKeys.forEach((key) => {
               cache.delete(key);
             });
             setCacheKeys([]);

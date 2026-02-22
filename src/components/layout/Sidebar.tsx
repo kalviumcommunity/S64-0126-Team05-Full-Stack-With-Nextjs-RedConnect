@@ -15,7 +15,10 @@ export default function Sidebar() {
       <ul className="space-y-2">
         {links.map((link) => (
           <li key={link.href}>
-            <Link href={link.href} className="text-gray-700 hover:text-blue-600">
+            <Link
+              href={link.href}
+              className="text-gray-700 hover:text-blue-600"
+            >
               {link.label}
             </Link>
           </li>
@@ -24,4 +27,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-

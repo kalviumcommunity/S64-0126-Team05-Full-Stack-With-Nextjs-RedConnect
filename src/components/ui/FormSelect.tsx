@@ -1,6 +1,4 @@
 "use client";
-
-import React from "react";
 import { UseFormRegisterReturn } from "react-hook-form";
 
 interface FormSelectProps {
@@ -46,11 +44,7 @@ export default function FormSelect({
           w-full px-3 py-2 border rounded-md shadow-sm
           focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500
           disabled:bg-gray-100 disabled:cursor-not-allowed
-          ${
-            hasError
-              ? "border-red-300 bg-red-50"
-              : "border-gray-300"
-          }
+          ${hasError ? "border-red-300 bg-red-50" : "border-gray-300"}
         `}
       >
         <option value="">{placeholder}</option>
@@ -68,4 +62,3 @@ export default function FormSelect({
     </div>
   );
 }
-

@@ -104,11 +104,7 @@ export async function POST(req: Request) {
       select: bloodBankSelect,
     });
 
-    return sendSuccess(
-      bloodBank,
-      "Blood bank created successfully",
-      201
-    );
+    return sendSuccess(bloodBank, "Blood bank created successfully", 201);
   } catch (err) {
     // Handle Zod validation errors
     if (err instanceof ZodError) {

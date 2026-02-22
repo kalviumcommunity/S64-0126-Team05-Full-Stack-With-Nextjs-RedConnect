@@ -1,15 +1,22 @@
-import { NextRequest } from 'next/server';
-import { ZodError } from 'zod';
-import prisma from '@/lib/prisma';
-import { sendSuccess, sendError } from '@/lib/responseHandler';
-import { ERROR_CODES } from '@/lib/errorCodes';
-import { bloodDonationCreateSchema } from '@/lib/schemas/bloodDonationSchema';
-import { sendValidationError } from '@/lib/validationUtils';
+import { NextRequest } from "next/server";
+import { ZodError } from "zod";
+import prisma from "@/lib/prisma";
+import { sendSuccess, sendError } from "@/lib/responseHandler";
+import { safeJson } from "@/lib/api";
+import { ERROR_CODES } from "@/lib/errorCodes";
+import { bloodDonationCreateSchema } from "@/lib/schemas/bloodDonationSchema";
+import { sendValidationError } from "@/lib/validationUtils";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
+  const parsed = await safeJson(request);
+  if (!parsed.ok) {
+    return sendError("Invalid JSON body", ERROR_CODES.VALIDATION_ERROR, 400);
+  }
+
   try {
-    const body = await request.json();
-    
+    const body = parsed.data;
+
     // Validate request body using Zod schema
     const validatedData = bloodDonationCreateSchema.parse(body);
 
@@ -31,7 +38,9 @@ export async function POST(request: NextRequest) {
       });
 
       if (!bloodBank) {
-        throw new Error(`Blood Bank with ID ${validatedData.bloodBankId} not found`);
+        throw new Error(
+          `Blood Bank with ID ${validatedData.bloodBankId} not found`
+        );
       }
 
       // 3. Verify blood type matches
@@ -48,7 +57,7 @@ export async function POST(request: NextRequest) {
           bloodBankId: validatedData.bloodBankId,
           units: validatedData.units,
           notes: validatedData.notes || null,
-          status: 'completed',
+          status: "completed",
         },
         include: {
           donor: {
@@ -101,17 +110,15 @@ export async function POST(request: NextRequest) {
       return {
         donation,
         inventory,
-        message: 'Donation recorded successfully',
+        message: "Donation recorded successfully",
       };
     });
 
-    return sendSuccess(
-      result,
-      "Donation processed successfully",
-      201
-    );
+    return sendSuccess(result, "Donation processed successfully", 201);
   } catch (error) {
-    console.error('Blood donation error:', error);
+    logger.error("Blood donation processing failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
 
     // Handle Zod validation errors
     if (error instanceof ZodError) {
@@ -121,7 +128,7 @@ export async function POST(request: NextRequest) {
     const err = error as Error & { code?: string; meta?: { cause?: string } };
 
     // Check if it's a known validation error
-    if (err.message?.includes('not found')) {
+    if (err.message?.includes("not found")) {
       return sendError(
         "Donor or blood bank not found",
         ERROR_CODES.NOT_FOUND,
@@ -130,23 +137,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (err.message?.includes('mismatch')) {
-      return sendError(
-        err.message,
-        ERROR_CODES.BLOOD_TYPE_MISMATCH,
-        400,
-        err
-      );
+    if (err.message?.includes("mismatch")) {
+      return sendError(err.message, ERROR_CODES.BLOOD_TYPE_MISMATCH, 400, err);
     }
 
     // Handle Prisma errors
-    if (err.code === 'P2025') {
-      return sendError(
-        "Record not found",
-        ERROR_CODES.NOT_FOUND,
-        404,
-        err
-      );
+    if (err.code === "P2025") {
+      return sendError("Record not found", ERROR_CODES.NOT_FOUND, 404, err);
     }
 
     // Generic error
@@ -181,7 +178,7 @@ export async function GET() {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       take: 50,
     });
@@ -196,7 +193,9 @@ export async function GET() {
       "Donations fetched successfully"
     );
   } catch (error: unknown) {
-    console.error('Failed to fetch donations:', error);
+    logger.error("Failed to fetch donations", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return sendError(
       "Failed to fetch donations",
       ERROR_CODES.DATABASE_ERROR,

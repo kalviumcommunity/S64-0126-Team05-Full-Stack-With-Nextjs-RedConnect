@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import * as jose from "jose";
+import { logger } from "@/lib/logger";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your-super-secret-key-change-in-production"
-);
+const rawSecret =
+  process.env.JWT_SECRET ||
+  (process.env.NODE_ENV === "development" ? "dev-jwt-secret-change-me" : "");
+
+if (!rawSecret) {
+  throw new Error("JWT_SECRET environment variable must be set");
+}
+
+const JWT_SECRET = new TextEncoder().encode(rawSecret);
 
 /**
  * Role-based route configuration
@@ -14,7 +21,10 @@ const ROLE_BASED_ROUTES: Record<string, string[]> = {
   "/api/admin": ["ADMIN"],
   "/api/admin/users": ["ADMIN"],
   "/api/admin/reports": ["ADMIN"],
-  "/api/users": ["DONOR", "ADMIN", "HOSPITAL"], // All authenticated users can list users
+  "/api/users": ["DONOR", "ADMIN", "HOSPITAL"],
+  "/api/donors": ["DONOR", "ADMIN", "HOSPITAL"],
+  "/api/blood-banks": ["DONOR", "ADMIN", "HOSPITAL"],
+  "/api/blood-donation": ["DONOR", "ADMIN"],
 };
 
 /**
@@ -37,12 +47,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // API routes - require JWT token and role-based access
   if (pathname.startsWith("/api/")) {
     return handleApiAuthorization(req, pathname);
   }
 
-  // Page routes - check cookie-based token
   if (pathname.startsWith("/dashboard") || pathname.startsWith("/users")) {
     return handlePageProtection(req);
   }
@@ -50,23 +58,22 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-/**
- * Handle API route authorization
- * Checks JWT token from Authorization header and validates role
- */
-async function handleApiAuthorization(
-  req: NextRequest,
-  pathname: string
-) {
-  // Check if route requires role-based access
+async function handleApiAuthorization(req: NextRequest, pathname: string) {
   const requiredRole = findMatchingRoute(pathname);
   if (!requiredRole) {
     return NextResponse.next(); // Route doesn't require authorization
   }
 
-  // Extract token from Authorization header
   const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  const hasBearer = authHeader && authHeader.startsWith("Bearer ");
+
+  const tokenFromHeader = hasBearer ? authHeader.slice(7) : null;
+
+  const tokenFromCookie = req.cookies.get("accessToken")?.value;
+
+  const token = tokenFromHeader || tokenFromCookie;
+
+  if (!token) {
     return NextResponse.json(
       {
         success: false,
@@ -77,14 +84,10 @@ async function handleApiAuthorization(
     );
   }
 
-  const token = authHeader.slice(7); // Remove "Bearer " prefix
-
   try {
-    // Verify JWT token
     const verified = await jose.jwtVerify(token, JWT_SECRET);
     const userRole = verified.payload.role as string;
 
-    // Check if user has required role
     if (!requiredRole.includes(userRole)) {
       return NextResponse.json(
         {
@@ -96,7 +99,6 @@ async function handleApiAuthorization(
       );
     }
 
-    // Attach user info to headers for downstream handlers
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set("x-user-id", verified.payload.id as string);
     requestHeaders.set("x-user-email", verified.payload.email as string);
@@ -106,33 +108,28 @@ async function handleApiAuthorization(
       request: { headers: requestHeaders },
     });
   } catch (err) {
-    console.error("JWT verification failed:", err);
+    logger.error("JWT verification failed", {
+      pathname,
+      error: err instanceof Error ? err.message : String(err),
+    });
     return NextResponse.json(
       {
         success: false,
         message: "Invalid or expired token",
         error: { code: "E104" },
       },
-      { status: 403 }
+      { status: 401 }
     );
   }
 }
 
-/**
- * Handle page route protection
- * Checks token stored in cookies
- */
 async function handlePageProtection(req: NextRequest) {
-  const token = req.cookies.get("token")?.value;
+  const token =
+    req.cookies.get("accessToken")?.value || req.cookies.get("token")?.value;
 
   if (!token) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);
-  }
-
-  // Allow mock token for demo
-  if (token === "mock.jwt.token") {
-    return NextResponse.next();
   }
 
   try {
@@ -173,4 +170,3 @@ export const config = {
     "/users/:path*",
   ],
 };
-

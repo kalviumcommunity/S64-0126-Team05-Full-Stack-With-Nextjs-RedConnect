@@ -1,14 +1,18 @@
-declare module 'js-cookie' {
+declare module "js-cookie" {
   interface CookieAttributes {
     expires?: number | Date;
     path?: string;
     domain?: string;
     secure?: boolean;
-    sameSite?: 'Strict' | 'Lax' | 'None';
+    sameSite?: "Strict" | "Lax" | "None";
   }
 
   interface CookiesStatic {
-    set(name: string, value: string, options?: CookieAttributes): string | undefined;
+    set(
+      name: string,
+      value: string,
+      options?: CookieAttributes
+    ): string | undefined;
     get(name: string): string | undefined;
     get(): { [key: string]: string };
     remove(name: string, options?: CookieAttributes): void;

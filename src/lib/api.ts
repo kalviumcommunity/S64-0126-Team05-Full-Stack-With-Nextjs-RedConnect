@@ -22,13 +22,16 @@ export function parseOptionalBoolean(value: string | null) {
 
 export function parsePagination(
   req: Request,
-  options?: { defaultLimit?: number; maxLimit?: number },
+  options?: { defaultLimit?: number; maxLimit?: number }
 ) {
   const { searchParams } = new URL(req.url);
   const page = Math.max(1, coerceInt(searchParams.get("page"), 1));
   const defaultLimit = options?.defaultLimit ?? 10;
   const maxLimit = options?.maxLimit ?? 100;
-  const limit = Math.min(maxLimit, Math.max(1, coerceInt(searchParams.get("limit"), defaultLimit)));
+  const limit = Math.min(
+    maxLimit,
+    Math.max(1, coerceInt(searchParams.get("limit"), defaultLimit))
+  );
 
   return {
     page,
@@ -58,4 +61,3 @@ export function jsonError(message: string, status = 500, details?: unknown) {
 
   return NextResponse.json(body, { status });
 }
-
