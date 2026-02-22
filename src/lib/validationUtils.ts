@@ -32,21 +32,13 @@ export const parseZodErrors = (error: ZodError): ValidationErrorDetail[] => {
 export const sendValidationError = (error: ZodError | Error) => {
   if (error instanceof ZodError) {
     const validationErrors = parseZodErrors(error);
-    return sendError(
-      "Validation failed",
-      ERROR_CODES.VALIDATION_ERROR,
-      400,
-      {
-        errors: validationErrors,
-        summary: `${validationErrors.length} validation error(s)`,
-      }
-    );
+    return sendError("Validation failed", ERROR_CODES.VALIDATION_ERROR, 400, {
+      errors: validationErrors,
+      summary: `${validationErrors.length} validation error(s)`,
+    });
   }
 
-  return sendError(
-    "Invalid request",
-    ERROR_CODES.VALIDATION_ERROR,
-    400,
-    { message: error.message }
-  );
+  return sendError("Invalid request", ERROR_CODES.VALIDATION_ERROR, 400, {
+    message: error.message,
+  });
 };

@@ -61,11 +61,15 @@ export function handleError(
   };
 
   // Log full error details for debugging (always captured, never shown to user in prod)
-  logger.error(`Error in ${context}`, {
-    status,
-    message: errorMessage,
-    context,
-  }, isDev ? errorStack : "REDACTED");
+  logger.error(
+    `Error in ${context}`,
+    {
+      status,
+      message: errorMessage,
+      context,
+    },
+    isDev ? errorStack : "REDACTED"
+  );
 
   return NextResponse.json(errorResponse, { status });
 }
@@ -94,12 +98,16 @@ export function handleTypedError(appError: AppError): NextResponse {
   };
 
   // Log with error code for better tracking
-  logger.error(`Error in ${context}`, {
-    status,
-    code: appError.code,
-    message: appError.message,
-    context,
-  }, isDev && appError.originalError ? appError.originalError.stack : "REDACTED");
+  logger.error(
+    `Error in ${context}`,
+    {
+      status,
+      code: appError.code,
+      message: appError.message,
+      context,
+    },
+    isDev && appError.originalError ? appError.originalError.stack : "REDACTED"
+  );
 
   return NextResponse.json(errorResponse, { status });
 }

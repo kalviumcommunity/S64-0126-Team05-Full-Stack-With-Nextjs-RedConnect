@@ -1,6 +1,7 @@
 # ✅ Assessment Completion Status
 
 ## Overview
+
 RedConnect API Design and RESTful Route Structure implementation for Next.js is **95% complete**. Only the video demo remains.
 
 ---
@@ -8,15 +9,18 @@ RedConnect API Design and RESTful Route Structure implementation for Next.js is 
 ## Task Breakdown
 
 ### 1. ✅ Set Up API Folder Structure
+
 **Status:** COMPLETE
 
 **What was done:**
+
 - Created `src/app/api/` folder hierarchy
-- Organized resources by entity (blood-banks, donors, blood-donation, users, messages, notifications, reports)  
+- Organized resources by entity (blood-banks, donors, blood-donation, users, messages, notifications, reports)
 - Each resource has its own folder with `route.ts` handler
 - Dynamic routes implemented (e.g., `/api/users/[id]/`)
 
 **Files created:**
+
 ```
 src/app/api/
 ├── blood-banks/route.ts
@@ -34,27 +38,30 @@ src/app/api/
 ---
 
 ### 2. ✅ Define RESTful Endpoints and Verbs
+
 **Status:** COMPLETE
 
 **Implemented endpoints:**
 
-| Method | Route | Status |
-|--------|-------|--------|
-| GET | `/api/blood-banks` | ✅ Returns list with pagination |
-| POST | `/api/blood-banks` | ✅ Creates new blood bank |
-| GET | `/api/donors` | ✅ Returns list with pagination & filters |
-| POST | `/api/donors` | ✅ Creates new donor with validation |
-| POST | `/api/blood-donation` | ✅ Records donation with atomic transaction |
-| GET | `/api/users` | ✅ Returns list with pagination |
-| POST | `/api/users` | ✅ Creates new user |
+| Method | Route                 | Status                                      |
+| ------ | --------------------- | ------------------------------------------- |
+| GET    | `/api/blood-banks`    | ✅ Returns list with pagination             |
+| POST   | `/api/blood-banks`    | ✅ Creates new blood bank                   |
+| GET    | `/api/donors`         | ✅ Returns list with pagination & filters   |
+| POST   | `/api/donors`         | ✅ Creates new donor with validation        |
+| POST   | `/api/blood-donation` | ✅ Records donation with atomic transaction |
+| GET    | `/api/users`          | ✅ Returns list with pagination             |
+| POST   | `/api/users`          | ✅ Creates new user                         |
 
 **REST Conventions Used:**
+
 - ✅ Plural nouns for resources (`/api/donors` not `/api/donor`)
 - ✅ Correct HTTP verbs (GET for read, POST for create)
 - ✅ Appropriate status codes (200, 201, 400, 409, 500)
 - ✅ Consistent JSON response format
 
 **Example:**
+
 ```typescript
 // src/app/api/donors/route.ts
 export async function GET(req: Request) { ... }  // Fetch all donors
@@ -66,41 +73,50 @@ export async function POST(req: Request) { ... } // Create new donor
 ---
 
 ### 3. ✅ Add Pagination, Filtering, and Error Handling
+
 **Status:** COMPLETE
 
 #### Pagination Implementation:
+
 ```typescript
 export function parsePagination(req: Request) {
   const page = Math.max(1, coerceInt(searchParams.get("page"), 1));
-  const limit = Math.min(100, Math.max(1, coerceInt(searchParams.get("limit"), 10)));
-  
+  const limit = Math.min(
+    100,
+    Math.max(1, coerceInt(searchParams.get("limit"), 10))
+  );
+
   return {
     page,
     limit,
     take: limit,
-    skip: (page - 1) * limit,  // Calculate offset
+    skip: (page - 1) * limit, // Calculate offset
   };
 }
 ```
 
 **Tested with:**
+
 ```bash
 curl "http://localhost:3000/api/blood-banks?page=1&limit=5"
 # Returns meta object with: page, limit, total, totalPages
 ```
 
 #### Filtering Implementation:
+
 - Blood type filter: `?bloodType=A+`
 - City filter: `?city=Mumbai`
 - Active status filter: `?isActive=true`
 
 **Example:**
+
 ```bash
 curl "http://localhost:3000/api/donors?bloodType=A+&city=Mumbai"
 # Filters donors by blood type AND city
 ```
 
 #### Error Handling:
+
 ```typescript
 export function jsonError(message: string, status = 500, details?: unknown) {
   // Returns consistent error format with HTTP status codes
@@ -113,6 +129,7 @@ export function jsonError(message: string, status = 500, details?: unknown) {
 ```
 
 **Tested errors:**
+
 - ✅ Missing required fields → 400
 - ✅ Invalid email format → error message
 - ✅ Duplicate email → 409 Conflict
@@ -123,17 +140,20 @@ export function jsonError(message: string, status = 500, details?: unknown) {
 ---
 
 ### 4. ✅ Test Your API Routes
+
 **Status:** COMPLETE
 
 **Routes Tested:**
 
 1. **GET /api/blood-banks**
+
    ```bash
    curl "http://localhost:3000/api/blood-banks?page=1&limit=5"
    # ✅ Returns paginated list with inventories
    ```
 
 2. **POST /api/blood-banks**
+
    ```bash
    curl -X POST http://localhost:3000/api/blood-banks \
      -H "Content-Type: application/json" \
@@ -142,12 +162,14 @@ export function jsonError(message: string, status = 500, details?: unknown) {
    ```
 
 3. **GET /api/donors**
+
    ```bash
    curl "http://localhost:3000/api/donors?bloodType=A%2B"
    # ✅ Returns paginated donors with filters applied
    ```
 
 4. **POST /api/donors**
+
    ```bash
    curl -X POST http://localhost:3000/api/donors \
      -H "Content-Type: application/json" \
@@ -168,9 +190,11 @@ export function jsonError(message: string, status = 500, details?: unknown) {
 ---
 
 ### 5. ✅ Document in README
+
 **Status:** COMPLETE
 
 **Added to README:**
+
 - [x] API folder structure diagram
 - [x] All endpoint documentation with:
   - Purpose/description
@@ -198,6 +222,7 @@ export function jsonError(message: string, status = 500, details?: unknown) {
 ---
 
 ### 6. ⏳ Video Demo
+
 **Status:** READY TO RECORD (Script & Checklist Provided)
 
 **What You Need to Record (1-2 minutes):**
@@ -219,6 +244,7 @@ export function jsonError(message: string, status = 500, details?: unknown) {
    - Professional standards
 
 **Resources Provided:**
+
 - ✅ `API-DEMO-SCRIPT.md` — Complete script with talking points
 - ✅ Commands ready to copy/paste
 - ✅ Expected outputs documented
@@ -283,6 +309,7 @@ SUBMISSION:
 ## How to Use This Info
 
 1. **Run the API** (if not already running):
+
    ```bash
    npm run dev
    ```

@@ -1,18 +1,15 @@
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
+import { NextResponse } from "next/server";
 
 import { safeJson } from "@/lib/api";
 import prisma from "@/lib/prisma";
-import { sendSuccess, sendError } from "@/lib/responseHandler";
+import { sendError } from "@/lib/responseHandler";
 import { sendValidationError } from "@/lib/validationUtils";
 import { ERROR_CODES } from "@/lib/errorCodes";
-import { generateToken } from "@/lib/jwtUtils";
+import { generateAccessToken, generateRefreshToken } from "@/lib/jwtUtils";
 import { loginSchema } from "@/lib/schemas/authSchema";
 
-/**
- * POST /api/auth/login
- * Authenticate user and return JWT token
- */
 export async function POST(req: Request) {
   const parsed = await safeJson(req);
   if (!parsed.ok) {
@@ -20,10 +17,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Validate input with Zod schema
     const validatedData = loginSchema.parse(parsed.data);
 
-    // Find user by email
     const user = await prisma.user.findUnique({
       where: { email: validatedData.email },
       select: {
@@ -35,49 +30,69 @@ export async function POST(req: Request) {
       },
     });
 
-    // Check if user exists
     if (!user) {
-      return sendError(
-        "Invalid credentials",
-        "E102",
-        401
-      );
+      return sendError("Invalid credentials", "E102", 401);
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(
       validatedData.password,
       user.password
     );
 
     if (!isPasswordValid) {
-      return sendError(
-        "Invalid credentials",
-        "E102",
-        401
-      );
+      return sendError("Invalid credentials", "E102", 401);
     }
 
-    // Generate JWT token
-    const token = await generateToken({
+    const accessToken = await generateAccessToken({
       id: user.id,
       email: user.email,
       role: user.role,
     });
 
-    // Return token and user data (without password)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
-    return sendSuccess(
-      {
-        token,
+    const refreshToken = await generateRefreshToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    const userWithoutPassword = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    const responseBody = {
+      success: true,
+      message: "Login successful",
+      data: {
         user: userWithoutPassword,
       },
-      "Login successful",
-      200
-    );
+      timestamp: new Date().toISOString(),
+    };
+
+    const response = NextResponse.json(responseBody, { status: 200 });
+
+    const isProduction = process.env.NODE_ENV === "production";
+
+    response.cookies.set("accessToken", accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "strict",
+      path: "/",
+      maxAge: 15 * 60,
+    });
+
+    response.cookies.set("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "strict",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
+    return response;
   } catch (err) {
-    // Handle Zod validation errors
     if (err instanceof ZodError) {
       return sendValidationError(err);
     }

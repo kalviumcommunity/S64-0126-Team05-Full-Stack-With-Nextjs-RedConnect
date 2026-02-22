@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { getCache, setCache } from "@/lib/redis";
 import { TEST_USERS_CACHE_KEY } from "@/lib/cacheKeys";

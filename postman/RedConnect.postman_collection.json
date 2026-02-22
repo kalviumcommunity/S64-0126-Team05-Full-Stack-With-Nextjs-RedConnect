@@ -63,7 +63,10 @@
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Alice Updated\"\n}" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Updated\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/users/{{userId}}",
               "host": ["{{baseUrl}}"],
@@ -181,7 +184,10 @@
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"content\": \"Updated message\"\n}" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated message\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/messages/{{messageId}}",
               "host": ["{{baseUrl}}"],
@@ -252,7 +258,10 @@
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"resolved\"\n}" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/reports/{{reportId}}",
               "host": ["{{baseUrl}}"],
@@ -346,4 +355,3 @@
     }
   ]
 }
-

@@ -24,9 +24,12 @@ export async function POST(req: Request) {
     // Validate input with Zod schema
     const validatedData = signupSchema.parse(parsed.data);
 
+    // Normalize email to lowercase for case-insensitive comparison
+    const normalizedEmail = validatedData.email.toLowerCase();
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -44,7 +47,7 @@ export async function POST(req: Request) {
     const newUser = await prisma.user.create({
       data: {
         name: validatedData.name,
-        email: validatedData.email.toLowerCase(),
+        email: normalizedEmail,
         password: hashedPassword,
         role: validatedData.role,
       },
