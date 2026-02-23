@@ -1,7 +1,7 @@
 /**
  * Test Error Handling Endpoint
  * Demonstrates centralized error handling in development vs production
- * 
+ *
  * Usage:
  * curl http://localhost:3000/api/test-error?type=database
  * curl http://localhost:3000/api/test-error?type=validation
@@ -48,7 +48,9 @@ export async function GET(req: Request) {
         });
 
       case "timeout":
-        throw new Error("Request timeout: External API did not respond within 10 seconds");
+        throw new Error(
+          "Request timeout: External API did not respond within 10 seconds"
+        );
 
       case "notfound":
         return handleTypedError({

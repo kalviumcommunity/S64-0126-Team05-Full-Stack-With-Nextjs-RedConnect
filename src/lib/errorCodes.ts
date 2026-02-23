@@ -9,27 +9,27 @@ export const ERROR_CODES = {
   TOKEN_REQUIRED: "E103",
   TOKEN_INVALID: "E104",
   ACCESS_DENIED: "E105",
-  
+
   // Validation errors
   VALIDATION_ERROR: "E001",
   MISSING_FIELD: "E002",
   INVALID_FORMAT: "E003",
-  
+
   // Not found errors
   NOT_FOUND: "E004",
   DONOR_NOT_FOUND: "E005",
   BLOOD_BANK_NOT_FOUND: "E006",
-  
+
   // Conflict errors
   DUPLICATE_EMAIL: "E007",
   DUPLICATE_RECORD: "E008",
   BLOOD_TYPE_MISMATCH: "E009",
-  
+
   // Database errors
   DATABASE_ERROR: "E010",
   DATABASE_FAILURE: "E011",
   TRANSACTION_FAILED: "E012",
-  
+
   // Internal server errors
   INTERNAL_ERROR: "E500",
   UNKNOWN_ERROR: "E501",

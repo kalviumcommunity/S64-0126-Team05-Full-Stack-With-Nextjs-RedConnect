@@ -16,18 +16,12 @@ export const donorCreateSchema = z.object({
   phone: z
     .string()
     .regex(/^[0-9\s\-\+\(\)]{7,15}$/, "Invalid phone number format"),
-  bloodType: z
-    .enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]),
-  dateOfBirth: z
-    .string()
-    .refine(
-      (date) => {
-        const parsed = new Date(date);
-        const age = new Date().getFullYear() - parsed.getFullYear();
-        return age >= 18;
-      },
-      "Donor must be at least 18 years old (YYYY-MM-DD format)"
-    ),
+  bloodType: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]),
+  dateOfBirth: z.string().refine((date) => {
+    const parsed = new Date(date);
+    const age = new Date().getFullYear() - parsed.getFullYear();
+    return age >= 18;
+  }, "Donor must be at least 18 years old (YYYY-MM-DD format)"),
   address: z
     .string()
     .min(5, "Address must be at least 5 characters long")

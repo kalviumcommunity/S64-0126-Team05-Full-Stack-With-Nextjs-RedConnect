@@ -25,7 +25,7 @@ async function main() {
       password: "hashedpassword123",
       role: Role.DONOR,
       latitude: 28.6139,
-      longitude: 77.2090,
+      longitude: 77.209,
     },
   });
 

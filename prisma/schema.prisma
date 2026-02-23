@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 model User {
   id        String   @id @default(uuid())
@@ -134,6 +135,7 @@ model FileUpload {
 enum Role {
   DONOR
   HOSPITAL
+  NGO
   ADMIN
 }
 

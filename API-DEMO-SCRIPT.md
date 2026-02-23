@@ -3,6 +3,7 @@
 ## Assessment Status
 
 ### ✅ Completed Tasks
+
 1. **API Folder Structure** — Organized under `src/app/api/` with RESTful conventions
 2. **RESTful Endpoints** — Implemented GET/POST for blood-banks, donors, and blood-donation
 3. **Pagination & Filtering** — page, limit, bloodType, city filters
@@ -17,7 +18,9 @@
 ## 📽️ Video Recording Checklist
 
 ### Part 1: Directory Structure (15 seconds)
+
 **What to show:**
+
 - [ ] Open VS Code Explorer
 - [ ] Navigate to `src/app/api/`
 - [ ] Show the folder structure:
@@ -35,6 +38,7 @@
 - [ ] Briefly explain: "Each folder represents a resource, following REST conventions with plural nouns"
 
 **Script:**
+
 > "Here's our API folder structure under `src/app/api/`. Each resource has its own route file following REST naming conventions. We have blood-banks, donors, blood-donation, users, messages, notifications, and reports. This makes it easy to scale — adding a new resource just means adding a new folder with a route.ts file."
 
 ---
@@ -42,6 +46,7 @@
 ### Part 2: Working Endpoints Demo (45 seconds)
 
 #### Endpoint 1: GET /api/blood-banks (Pagination Example)
+
 **Terminal commands to show:**
 
 ```bash
@@ -51,6 +56,7 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5"
 ```
 
 **What should display:**
+
 ```json
 {
   "data": [...],
@@ -64,11 +70,13 @@ curl -X GET "http://localhost:3000/api/blood-banks?page=1&limit=5"
 ```
 
 **Script:**
+
 > "First, let's test the blood banks endpoint with pagination. We're requesting page 1 with a limit of 5 items per page. Notice the meta object shows pagination details: current page, items per page, total count, and total pages. This is essential for building scalable applications."
 
 ---
 
 #### Endpoint 2: POST /api/donors (Create with Validation)
+
 **Terminal commands:**
 
 ```bash
@@ -86,6 +94,7 @@ curl -X POST http://localhost:3000/api/donors \
 ```
 
 **What should display:**
+
 ```json
 {
   "data": {
@@ -99,11 +108,13 @@ curl -X POST http://localhost:3000/api/donors \
 ```
 
 **Script:**
+
 > "Now let's create a donor. We're sending a POST request with required fields: name, email, phone, blood type, date of birth, address, and city. The server validates each field and returns the created donor with a 201 status. If we were to omit a required field, we'd get a 400 Bad Request error with a specific message about which field is missing."
 
 ---
 
 #### Endpoint 3: Error Handling (Show Validation)
+
 **Terminal commands:**
 
 ```bash
@@ -122,6 +133,7 @@ curl -X POST http://localhost:3000/api/donors \
 ```
 
 **What should display:**
+
 ```json
 {
   "error": {
@@ -131,6 +143,7 @@ curl -X POST http://localhost:3000/api/donors \
 ```
 
 **Script:**
+
 > "Let's test error handling. If we try to create a donor with an email that already exists, we get a 409 Conflict status with a meaningful error message. This prevents duplicate entries and provides clear feedback to the client."
 
 ---
@@ -138,6 +151,7 @@ curl -X POST http://localhost:3000/api/donors \
 ### Part 3: Reflection on Structure & Naming (30 seconds)
 
 **Script:**
+
 > "Now let's discuss why this structure matters for scaling and teamwork.
 
 > **First, consistency:** Every resource follows the same pattern — GET for fetching, POST for creating. New team members don't need extensive documentation; they can predict the endpoints.
@@ -176,6 +190,7 @@ curl -X POST http://localhost:3000/api/donors \
 ## 🎥 Final Submission
 
 After recording:
+
 1. Save video as MP4 or WEBM
 2. Upload to Google Drive
 3. Set to "Anyone with the link can edit"
