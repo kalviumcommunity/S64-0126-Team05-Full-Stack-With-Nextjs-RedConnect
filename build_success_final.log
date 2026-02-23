@@ -1,0 +1,47 @@
+
+> redconnect@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.2s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/21) ...
+  Generating static pages using 15 workers (5/21) 
+  Generating static pages using 15 workers (10/21) 
+  Generating static pages using 15 workers (15/21) 
+✓ Generating static pages using 15 workers (21/21) in 427.1ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/admin
+├ ƒ /api/auth/login
+├ ƒ /api/auth/signup
+├ ƒ /api/blood-banks
+├ ƒ /api/blood-donation
+├ ƒ /api/donors
+├ ƒ /api/email
+├ ƒ /api/files
+├ ƒ /api/test
+├ ƒ /api/test-error
+├ ƒ /api/upload
+├ ƒ /api/users
+├ ƒ /api/users/[id]
+├ ○ /dashboard
+├ ○ /login
+├ ○ /search
+├ ○ /signup
+├ ○ /users
+└ ƒ /users/[id]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
