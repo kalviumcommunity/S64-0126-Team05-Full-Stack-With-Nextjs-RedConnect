@@ -102,7 +102,7 @@ export default function DonorsPage() {
                                     <td className="px-6 py-4 text-gray-500">{item.date}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${item.status === 'Verified' ? 'bg-green-50 text-green-700 border border-green-100' :
-                                                'bg-yellow-50 text-yellow-700 border border-yellow-100'
+                                            'bg-yellow-50 text-yellow-700 border border-yellow-100'
                                             }`}>
                                             {item.status}
                                         </span>

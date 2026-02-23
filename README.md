@@ -604,6 +604,39 @@ Screenshots can be added under `docs/` (e.g. home page with theme toggle and aut
 
 ---
 
+### 12. Error and Loading States (Next.js App Router) ✅
+
+**Status:** COMPLETE | **Date:** 23 February 2026
+
+Implemented global and route-specific fallback UIs using Next.js `loading.js` and `error.js` conventions. This ensures a smooth user experience during data fetching and graceful handling of runtime errors.
+
+#### Why Handle Loading and Error States?
+
+| State | Purpose | Implementation |
+|-------|---------|----------------|
+| **Loading** | Prevents blank screens and provides visual structure while fetching data. | Skeleton screens with Tailwind `animate-pulse`. |
+| **Error** | Gracefully handles failures without crashing the entire app. | Error boundaries with "Try Again" functionality. |
+
+#### Implementation Summary
+
+- ✅ **Global Loading Skeleton:** Added `src/app/(app)/loading.tsx` with pulse effects for headers, stats, and content grids.
+- ✅ **Global Error Boundary:** Added `src/app/(app)/error.tsx` with error logging and reset capabilities.
+- ✅ **Dashboard-Specific Fallbacks:** Added tailored `loading.tsx` and `error.tsx` in `src/app/dashboard` to match the specific dashboard layout.
+- ✅ **UX Optimization:** Used skeletons instead of spinners to maintain layout stability and reduce perceived load time.
+
+#### Evidence (Simulated)
+
+- **Loading State:** Verified by introducing server-side delays; skeletons appear immediately upon navigation.
+- **Error State:** Verified by throwing intentional errors in route components; the red error boundary displays the message and a "Try Again" button.
+
+**Files:**
+- `src/app/(app)/loading.tsx`
+- `src/app/(app)/error.tsx`
+- `src/app/dashboard/loading.tsx`
+- `src/app/dashboard/error.tsx`
+
+---
+
 ## 🔒 Security Features Implemented
 
 ✅ **Password Security:** bcrypt hashing with 10 salt rounds  
