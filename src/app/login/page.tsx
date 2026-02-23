@@ -279,7 +279,7 @@ export default function LoginPage() {
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <LockIcon className="w-5 h-5 text-blue-600" />
-                            <span className="text-xs font-semibold uppercase tracking-wider">HIPAA Compliant</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider">HIPAAA Compliant</span>
                         </div>
                     </div>
                 </div>
