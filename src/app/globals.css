@@ -15,11 +15,11 @@
 
 /* ── Dark theme (activated by .dark class on <html>) ── */
 .dark {
-  --background: #0f172a;
+  --background: #0a0a0f;
   --foreground: #f1f5f9;
-  --card-bg: #1e293b;
-  --card-border: #334155;
-  --muted: #1e293b;
+  --card-bg: #111118;
+  --card-border: #1f1f2e;
+  --muted: #16161f;
   --muted-foreground: #94a3b8;
   --accent: #ef4444;
   --accent-hover: #dc2626;
@@ -46,4 +46,20 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

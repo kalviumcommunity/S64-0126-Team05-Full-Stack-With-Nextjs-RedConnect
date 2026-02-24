@@ -87,15 +87,15 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 bottom-0 z-40">
+    <aside className="w-64 h-screen bg-white dark:bg-[#111118] border-r border-gray-100 dark:border-[#1f1f2e] flex flex-col fixed left-0 top-0 bottom-0 z-40 transition-colors">
       {/* Brand */}
       <div className="p-6 flex items-center gap-3">
-        <div className="bg-red-600 text-white p-1.5 rounded-lg">
+        <div className="bg-red-600 text-white p-1.5 rounded-lg flex-shrink-0">
           <HeartLogoIcon className="w-6 h-6" />
         </div>
-        <div>
-          <h1 className="font-bold text-lg text-gray-900 leading-none">RedConnect</h1>
-          <p className="text-xs text-gray-500">City General Hospital</p>
+        <div className="min-w-0">
+          <h1 className="font-bold text-lg text-gray-900 dark:text-white leading-none truncate">RedConnect</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">City General Hospital</p>
         </div>
       </div>
 
@@ -109,12 +109,12 @@ export default function Sidebar() {
               <Link
                 href={link.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
-                    ? "bg-red-50 text-red-600"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#16161f] hover:text-gray-900 dark:hover:text-white"
                   }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? "text-red-600" : "text-gray-400"}`} />
-                {link.label}
+                <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-red-600 dark:text-red-400" : "text-gray-400 dark:text-gray-500"}`} />
+                <span className="truncate">{link.label}</span>
               </Link>
             </li>
           );
@@ -122,10 +122,10 @@ export default function Sidebar() {
       </ul>
 
       {/* Storage Status Widget */}
-      <div className="p-4 mx-4 mb-6 bg-red-50 rounded-xl border border-red-100">
-        <h4 className="text-xs font-bold text-red-700 uppercase mb-1">Storage Status</h4>
-        <p className="text-xs text-red-600 mb-3">Optimal temperature maintained</p>
-        <div className="h-1.5 w-full bg-red-200 rounded-full overflow-hidden">
+      <div className="p-4 mx-4 mb-6 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30">
+        <h4 className="text-xs font-bold text-red-700 dark:text-red-400 uppercase mb-1">Storage Status</h4>
+        <p className="text-xs text-red-600 dark:text-red-300 mb-3">Optimal temperature maintained</p>
+        <div className="h-1.5 w-full bg-red-200 dark:bg-red-900/40 rounded-full overflow-hidden">
           <div className="h-full bg-red-600 w-3/4 rounded-full" />
         </div>
       </div>

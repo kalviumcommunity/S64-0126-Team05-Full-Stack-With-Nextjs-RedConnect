@@ -2,45 +2,6 @@
 
 import Link from "next/link";
 
-/* ── Icons ── */
-
-function UserPlusIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="8.5" cy="7" r="4" />
-            <line x1="20" y1="8" x2="20" y2="14" />
-            <line x1="23" y1="11" x2="17" y2="11" />
-        </svg>
-    );
-}
-
-function SearchIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-    );
-}
-
-function MapPinIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-        </svg>
-    );
-}
-
-function HeartIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-        </svg>
-    );
-}
-
 function ArrowLeftIcon({ className }: { className?: string }) {
     return (
         <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -50,67 +11,67 @@ function ArrowLeftIcon({ className }: { className?: string }) {
     );
 }
 
-/* ── How It Works Page ── */
-
 export default function HowItWorksPage() {
+    const steps = [
+        { number: "01", title: "Sign Up", description: "Create your free account as a Donor, Hospital, or NGO. It takes less than 2 minutes.", icon: "👤" },
+        { number: "02", title: "Find or Request Blood", description: "Donors can find nearby donation drives. Hospitals can create urgent blood requests instantly.", icon: "🔍" },
+        { number: "03", title: "Connect & Donate", description: "Our system matches requests with available donors in real-time for the fastest response.", icon: "🤝" },
+        { number: "04", title: "Save Lives", description: "Every donation makes an impact. Track your contribution and the lives you've helped save.", icon: "❤️" },
+    ];
+
     return (
-        <div className="min-h-screen bg-white">
-            <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
+        <div className="min-h-screen bg-white dark:bg-[#0a0a0f] transition-colors">
+            {/* Header */}
+            <header className="bg-white dark:bg-[#111118] shadow-sm dark:shadow-none sticky top-0 z-10 border-b border-gray-100 dark:border-[#1f1f2e]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition">
-                        <ArrowLeftIcon className="w-5 h-5" />
+                    <Link href="/" className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
                         <span className="font-medium">Back to Home</span>
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900">How It Works</h1>
-                    <div className="w-20"></div>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">How It Works</h1>
+                    <div className="w-20 hidden sm:block"></div>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Be a Hero in 4 Simple Steps</h2>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">Donating blood is safe, simple, and saves lives. Here is how you can get started with RedConnect.</p>
-                </div>
+            <main>
+                {/* Hero */}
+                <section className="py-12 sm:py-20 px-4 bg-red-50 dark:bg-red-900/10">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">How RedConnect Works</h1>
+                        <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                            A simple, fast, and reliable way to connect blood donors with those in need.
+                        </p>
+                    </div>
+                </section>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {[
-                        {
-                            icon: UserPlusIcon,
-                            title: "1. Register",
-                            description: "Create your donor profile. It takes less than 2 minutes to join our community of life-savers."
-                        },
-                        {
-                            icon: SearchIcon,
-                            title: "2. Find Center",
-                            description: "Use our real-time map to find nearby hospitals or blood donation drives needing your blood type."
-                        },
-                        {
-                            icon: MapPinIcon,
-                            title: "3. Donate",
-                            description: "Visit the center. The donation process is quick, sterile, and monitored by professionals."
-                        },
-                        {
-                            icon: HeartIcon,
-                            title: "4. Save Lives",
-                            description: "Your single donation can save up to three lives. Track your impact on your dashboard."
-                        }
-                    ].map((step, index) => (
-                        <div key={index} className="flex flex-col items-center text-center p-6 bg-red-50 rounded-2xl border border-red-100">
-                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-red-600 shadow-sm mb-6">
-                                <step.icon className="w-8 h-8" />
+                {/* Steps */}
+                <section className="py-12 sm:py-16 px-4">
+                    <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+                        {steps.map((step) => (
+                            <div key={step.number} className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 bg-gray-50 dark:bg-[#111118] p-6 sm:p-8 rounded-2xl border border-gray-100 dark:border-[#1f1f2e]">
+                                <div className="flex items-center gap-4 sm:flex-col sm:items-center flex-shrink-0">
+                                    <span className="text-3xl sm:text-4xl">{step.icon}</span>
+                                    <span className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-full">STEP {step.number}</span>
+                                </div>
+                                <div className="min-w-0">
+                                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                                    <p className="text-gray-600 dark:text-gray-300">{step.description}</p>
+                                </div>
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-                            <p className="text-gray-600">{step.description}</p>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                </section>
 
-                <div className="mt-20 bg-gray-900 rounded-3xl p-12 text-center text-white">
-                    <h2 className="text-3xl font-bold mb-6">Ready to make a difference?</h2>
-                    <Link href="/signup" className="inline-block bg-red-600 text-white font-bold py-4 px-8 rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-600/20">
-                        Become a Donor Today
-                    </Link>
-                </div>
+                {/* CTA */}
+                <section className="py-12 sm:py-16 px-4 bg-red-600 dark:bg-red-700">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Ready to make a difference?</h2>
+                        <p className="text-red-100 mb-8 max-w-xl mx-auto">Join our community of donors and hospitals working together to save lives.</p>
+                        <Link href="/signup" className="inline-block bg-white text-red-600 px-8 py-3 rounded-lg font-semibold hover:bg-red-50 transition shadow-lg">
+                            Get Started Now
+                        </Link>
+                    </div>
+                </section>
             </main>
         </div>
     );

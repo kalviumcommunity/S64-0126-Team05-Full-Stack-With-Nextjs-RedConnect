@@ -94,19 +94,11 @@ export async function GET(req: Request) {
 
     return sendSuccess(payload, "Blood banks fetched successfully");
   } catch (err) {
-    console.error("Error fetching blood banks:", err);
-    // Return empty data instead of error to allow frontend to work
-    return sendSuccess(
-      {
-        data: [],
-        meta: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          totalPages: 0,
-        },
-      },
-      "Blood banks fetched successfully (empty)"
+    return sendError(
+      "Failed to fetch blood banks",
+      ERROR_CODES.DATABASE_ERROR,
+      500,
+      err
     );
   }
 }

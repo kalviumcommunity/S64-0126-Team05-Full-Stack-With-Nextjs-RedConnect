@@ -5,7 +5,7 @@ import Sidebar from "./Sidebar";
 
 export default function LayoutWrapper({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-screen bg-gray-50/50">
+    <div className="flex h-screen bg-gray-50/50 dark:bg-[#0a0a0f]">
       {/* Sidebar is fixed width */}
       <div className="w-64 flex-shrink-0 relative z-50">
         <Sidebar />

@@ -186,7 +186,7 @@ export default function DonorsPage() {
         {filteredDonors.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDonors.map((donor) => (
-              <Link key={donor.id} href={`/donors/${donor.id}`}>
+              <Link key={donor.id} href={`/donor-profiles/${donor.id}`}>
                 <div className="h-full bg-white rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden cursor-pointer group">
                   {/* Header */}
                   <div className="bg-gradient-to-r from-red-500 to-red-600 p-4">

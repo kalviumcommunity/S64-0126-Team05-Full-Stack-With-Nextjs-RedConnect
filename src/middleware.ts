@@ -127,6 +127,11 @@ async function handlePageProtection(req: NextRequest) {
   const token =
     req.cookies.get("accessToken")?.value || req.cookies.get("token")?.value;
 
+  // Development-only bypass for mock tokens used in frontend demos
+  if (process.env.NODE_ENV === "development" && token === "mock.jwt.token") {
+    return NextResponse.next();
+  }
+
   if (!token) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);

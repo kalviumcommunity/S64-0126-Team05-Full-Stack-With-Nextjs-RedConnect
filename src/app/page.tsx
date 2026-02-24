@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
 /* ────────────────── Icons ────────────────── */
@@ -77,46 +76,163 @@ function CloseIcon({ className }: { className?: string }) {
   );
 }
 
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function UsersIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function HospitalIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21h18" />
+      <path d="M5 21V7l8-4v18" />
+      <path d="M19 21V11l-6-4" />
+      <path d="M9 9h1" />
+      <path d="M9 13h1" />
+      <path d="M9 17h1" />
+    </svg>
+  );
+}
+
+/* ────────────────── Animated Counter ────────────────── */
+
+function AnimatedCounter({ target, suffix = "" }: { target: string; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const numericTarget = parseInt(target.replace(/[^0-9]/g, ""));
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const duration = 2000;
+    const steps = 60;
+    const increment = numericTarget / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= numericTarget) {
+        setCount(numericTarget);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [isVisible, numericTarget]);
+
+  return (
+    <div ref={ref} className="text-3xl sm:text-4xl md:text-5xl font-black text-white tabular-nums">
+      {count.toLocaleString()}{suffix}
+    </div>
+  );
+}
+
 /* ────────────────── Landing Page ────────────────── */
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen flex flex-col text-white relative">
+      {/* ── Background Video ── */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover"
+        style={{ zIndex: -2 }}
+      >
+        <source src="/35461-405897690_medium.mp4" type="video/mp4" />
+      </video>
+
+      {/* ── Dark Vignette Overlay ── */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          zIndex: -1,
+          background: `
+            radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.75) 70%, rgba(0,0,0,0.95) 100%),
+            linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.8) 100%)
+          `,
+        }}
+      />
+
       {/* ── Header ── */}
-      <header className="w-full fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-card-border transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <BloodDropIcon className="w-6 h-6 text-accent" />
-            <span className="text-lg font-semibold text-foreground">RedConnect</span>
+      <header
+        className={`w-full fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? "bg-black/70 backdrop-blur-xl border-b border-white/10 py-3"
+            : "bg-transparent py-5"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <BloodDropIcon className="w-7 h-7 text-red-500 group-hover:scale-110 transition-transform duration-300" />
+            <span className="text-xl font-bold text-white tracking-tight">RedConnect</span>
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/about" className="text-foreground hover:text-accent transition">About</Link>
-            <Link href="/search" className="text-foreground hover:text-accent transition">Blood Availability</Link>
-            <Link href="/hospitals" className="text-foreground hover:text-accent transition">Hospitals</Link>
+            <Link href="/about" className="text-white/80 hover:text-white transition-colors duration-200 text-sm font-medium tracking-wide">About</Link>
+            <Link href="/search" className="text-white/80 hover:text-white transition-colors duration-200 text-sm font-medium tracking-wide">Blood Availability</Link>
+            <Link href="/hospitals" className="text-white/80 hover:text-white transition-colors duration-200 text-sm font-medium tracking-wide">Hospitals</Link>
           </nav>
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link
               href="/signup"
-              className="hidden sm:inline-flex px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition shadow-sm"
+              className="hidden sm:inline-flex px-5 py-2.5 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-500 transition-all duration-300 shadow-lg shadow-red-600/30 hover:shadow-red-500/50 hover:scale-105"
             >
               Signup
             </Link>
             <Link
               href="/login"
-              className="hidden sm:inline-flex px-4 py-2 rounded-lg bg-transparent border border-accent text-accent font-medium hover:bg-accent/10 transition"
+              className="hidden sm:inline-flex px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105"
             >
               Login
             </Link>
             {/* Mobile menu button */}
             <button
               id="mobile-menu-toggle"
-              className="md:hidden w-10 h-10 rounded-full flex items-center justify-center bg-muted text-foreground hover:bg-card-border transition cursor-pointer"
+              className="md:hidden w-10 h-10 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition cursor-pointer"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle mobile menu"
             >
@@ -127,95 +243,109 @@ export default function LandingPage() {
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-background border-t border-card-border px-6 py-4 space-y-3 transition-colors duration-300">
-            <Link href="/about" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>About</Link>
-            <Link href="/search" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>Blood Availability</Link>
-            <Link href="/hospitals" className="block text-foreground hover:text-accent transition" onClick={() => setMobileMenuOpen(false)}>Hospitals</Link>
-            <div className="flex gap-3 pt-2">
-              <Link href="/signup" className="inline-flex px-4 py-2 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition shadow-sm">Signup</Link>
-              <Link href="/login" className="inline-flex px-4 py-2 rounded-lg bg-transparent border border-accent text-accent font-medium hover:bg-accent/10 transition">Login</Link>
+          <div className="md:hidden bg-black/80 backdrop-blur-2xl border-t border-white/10 px-6 py-5 space-y-3 animate-[fadeIn_0.2s_ease-out]">
+            <Link href="/about" className="block text-white/80 hover:text-white transition py-1" onClick={() => setMobileMenuOpen(false)}>About</Link>
+            <Link href="/search" className="block text-white/80 hover:text-white transition py-1" onClick={() => setMobileMenuOpen(false)}>Blood Availability</Link>
+            <Link href="/hospitals" className="block text-white/80 hover:text-white transition py-1" onClick={() => setMobileMenuOpen(false)}>Hospitals</Link>
+            <div className="flex gap-3 pt-3">
+              <Link href="/signup" className="inline-flex px-5 py-2.5 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-500 transition shadow-lg shadow-red-600/30">Signup</Link>
+              <Link href="/login" className="inline-flex px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-semibold hover:bg-white/20 transition">Login</Link>
             </div>
           </div>
         )}
       </header>
 
       {/* ── Hero ── */}
-      <section className="pt-24 pb-12 sm:pt-28 sm:pb-16 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-12 lg:gap-16">
-          <div className="flex-1 text-center md:text-left">
-            <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-accent mb-3">
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 text-center">
+        <div className="max-w-4xl mx-auto">
+          {/* Pill badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-600/20 border border-red-500/30 backdrop-blur-sm mb-8 animate-[fadeIn_0.6s_ease-out]">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-red-400">
               Real-Time Inventory Management
-            </p>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-5">
-              Connecting Life,
-              <br />
+            </span>
+          </div>
+
+          {/* Main heading */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[0.95] mb-6 sm:mb-8 animate-[fadeIn_0.8s_ease-out]">
+            Connecting Life,
+            <br />
+            <span className="bg-gradient-to-r from-red-500 via-red-400 to-rose-400 bg-clip-text text-transparent">
               One Drop at a Time
-            </h1>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto md:mx-0 mb-8">
-              RedConnect bridges the gap between donors, hospitals, and NGOs with real-time inventory management. Ensure every emergency finds its match.
-            </p>
-            <div className="flex flex-wrap justify-center md:justify-start gap-4">
-              <Link
-                href="/search"
-                className="inline-flex px-5 sm:px-6 py-3 rounded-lg bg-accent text-white font-medium hover:bg-accent-hover transition shadow-md"
-              >
-                Find Blood
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex px-5 sm:px-6 py-3 rounded-lg bg-transparent border border-accent text-accent font-medium hover:bg-accent/10 transition shadow-md"
-              >
-                Become a Donor
-              </Link>
-            </div>
+            </span>
+          </h1>
+
+          {/* Description */}
+          <p className="text-base sm:text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-10 sm:mb-12 leading-relaxed animate-[fadeIn_1s_ease-out]">
+            RedConnect bridges the gap between donors, hospitals, and NGOs with real-time inventory management. Ensure every emergency finds its match.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-5 mb-16 animate-[fadeIn_1.2s_ease-out]">
+            <Link
+              href="/search"
+              className="group inline-flex items-center gap-2 px-7 sm:px-8 py-3.5 sm:py-4 rounded-full bg-red-600 text-white font-semibold text-base sm:text-lg hover:bg-red-500 transition-all duration-300 shadow-2xl shadow-red-600/40 hover:shadow-red-500/60 hover:scale-105"
+            >
+              Find Blood
+              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 px-7 sm:px-8 py-3.5 sm:py-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold text-base sm:text-lg hover:bg-white/20 transition-all duration-300 hover:scale-105"
+            >
+              Become a Donor
+            </Link>
           </div>
-          <div className="flex-1 flex justify-center w-full">
-            <div className="relative w-full max-w-sm sm:max-w-md aspect-[4/3] rounded-2xl overflow-hidden shadow-xl bg-muted">
-              <Image
-                src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=80"
-                alt="Healthcare professional with blood donation"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 500px"
-                priority
-              />
-            </div>
-          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ChevronDownIcon className="w-6 h-6 text-white/40" />
         </div>
       </section>
 
       {/* ── Stats ── */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 bg-muted transition-colors duration-300">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {[
-            { label: "LIVES SAVED", value: "50,000+" },
-            { label: "ACTIVE DONORS", value: "12,000+" },
-            { label: "PARTNER HOSPITALS", value: "450+" },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="bg-card-bg rounded-xl p-6 sm:p-8 shadow-md text-center border border-card-border transition-colors duration-300"
-            >
-              <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-2">
-                {stat.label}
-              </p>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
-                {stat.value}
-              </p>
-            </div>
-          ))}
+      <section className="relative py-16 sm:py-24 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              { label: "Lives Saved", value: "50000", suffix: "+", icon: HeartIcon },
+              { label: "Active Donors", value: "12000", suffix: "+", icon: UsersIcon },
+              { label: "Partner Hospitals", value: "450", suffix: "+", icon: HospitalIcon },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="group relative bg-white/5 backdrop-blur-xl rounded-2xl p-8 sm:p-10 border border-white/10 text-center transition-all duration-500 hover:bg-white/10 hover:border-white/20 hover:scale-[1.02] hover:shadow-2xl hover:shadow-red-600/10"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-red-600/20 flex items-center justify-center text-red-400 mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                  <stat.icon className="w-7 h-7" />
+                </div>
+                <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                <p className="text-sm font-semibold uppercase tracking-wider text-white/50 mt-3">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── Our Mission ── */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 bg-muted transition-colors duration-300" id="about">
+      <section className="relative py-16 sm:py-24 px-4 sm:px-6" id="about">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground text-center mb-4">
-            Our Mission
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-10 sm:mb-14">
-            Ensuring every drop counts through technology and community-driven healthcare.
-          </p>
+          <div className="text-center mb-12 sm:mb-16">
+            <span className="inline-block text-xs sm:text-sm font-semibold uppercase tracking-widest text-red-400 mb-4">
+              What drives us
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-5">
+              Our Mission
+            </h2>
+            <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
+              Ensuring every drop counts through technology and community-driven healthcare.
+            </p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
@@ -223,31 +353,38 @@ export default function LandingPage() {
                 title: "Fast",
                 description:
                   "Real-time updates on blood inventory across all partner hospitals, reducing response time by 60%.",
+                gradient: "from-orange-500 to-red-600",
               },
               {
                 icon: ShieldIcon,
                 title: "Reliable",
                 description:
                   "A verified network of donors and secure management systems designed for mission-critical medical needs.",
+                gradient: "from-red-500 to-rose-600",
               },
               {
                 icon: HeartIcon,
                 title: "Impactful",
                 description:
                   "Every donation contributes directly to saving lives in your local community. One donor can save three lives.",
+                gradient: "from-rose-500 to-pink-600",
               },
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-card-bg rounded-xl p-6 sm:p-8 shadow-md border border-card-border relative transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                className="group relative bg-white/5 backdrop-blur-xl rounded-2xl p-7 sm:p-9 border border-white/10 transition-all duration-500 hover:bg-white/10 hover:border-white/20 hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-600/10 overflow-hidden"
               >
-                <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-white mb-5">
-                  <item.icon className="w-6 h-6" />
+                {/* Subtle gradient glow on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-2xl`} />
+                <div className="relative z-10">
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                    <item.icon className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-white/60 leading-relaxed">{item.description}</p>
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground">{item.description}</p>
               </div>
             ))}
           </div>
@@ -255,63 +392,69 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA Banner ── */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-accent rounded-2xl sm:rounded-3xl py-10 sm:py-14 px-6 sm:px-8 md:px-16 text-center">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4">
-              Immediate Assistance Needed?
-            </h2>
-            <p className="text-white/90 max-w-2xl mx-auto mb-6 sm:mb-8 text-sm sm:text-base">
-              Check real-time availability of blood types in your local area and connect with nearby hospitals instantly.
-            </p>
-            <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
-              <Link
-                href="/search"
-                className="inline-flex justify-center px-6 py-3 rounded-lg bg-white text-accent font-medium hover:bg-gray-100 transition"
-              >
-                Search Blood Availability
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex justify-center px-6 py-3 rounded-lg bg-transparent border-2 border-white text-white font-medium hover:bg-white/10 transition"
-              >
-                Emergency Contact
-              </Link>
+      <section className="py-12 sm:py-20 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative bg-gradient-to-r from-red-700 via-red-600 to-rose-600 rounded-3xl py-12 sm:py-16 px-6 sm:px-10 md:px-16 text-center overflow-hidden">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
+
+            <div className="relative z-10">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+                Immediate Assistance Needed?
+              </h2>
+              <p className="text-white/90 max-w-2xl mx-auto mb-8 text-sm sm:text-base md:text-lg leading-relaxed">
+                Check real-time availability of blood types in your local area and connect with nearby hospitals instantly.
+              </p>
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
+                <Link
+                  href="/search"
+                  className="inline-flex justify-center items-center gap-2 px-7 py-3.5 rounded-full bg-white text-red-600 font-semibold hover:bg-gray-100 transition-all duration-300 shadow-xl hover:scale-105"
+                >
+                  Search Blood Availability
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex justify-center items-center gap-2 px-7 py-3.5 rounded-full bg-transparent border-2 border-white/60 text-white font-semibold hover:bg-white/10 hover:border-white transition-all duration-300 hover:scale-105"
+                >
+                  Emergency Contact
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="mt-auto bg-card-bg border-t border-card-border transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <footer className="mt-auto bg-black/50 backdrop-blur-2xl border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 mb-8 sm:mb-10">
             <div className="sm:col-span-2 md:col-span-1">
-              <Link href="/" className="flex items-center gap-2 mb-4">
-                <BloodDropIcon className="w-6 h-6 text-accent" />
-                <span className="text-lg font-semibold text-foreground">RedConnect</span>
+              <Link href="/" className="flex items-center gap-2 mb-4 group">
+                <BloodDropIcon className="w-7 h-7 text-red-500 group-hover:scale-110 transition-transform" />
+                <span className="text-lg font-bold text-white">RedConnect</span>
               </Link>
-              <p className="text-sm text-muted-foreground mb-4 max-w-xs">
+              <p className="text-sm text-white/50 mb-5 max-w-xs leading-relaxed">
                 The world&apos;s most advanced blood inventory management and donor connection platform.
               </p>
               <div className="flex gap-3">
                 <a
                   href="#"
-                  className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-card-border transition"
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:bg-white/20 hover:text-white transition-all duration-300"
                   aria-label="Share"
                 >
                   <GlobeIcon className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-card-border transition"
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:bg-white/20 hover:text-white transition-all duration-300"
                   aria-label="Email"
                 >
                   <MailIcon className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-card-border transition"
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:bg-white/20 hover:text-white transition-all duration-300"
                   aria-label="Contact"
                 >
                   <MailIcon className="w-5 h-5" />
@@ -319,53 +462,53 @@ export default function LandingPage() {
               </div>
             </div>
             <div>
-              <h4 className="font-bold text-foreground mb-4 uppercase text-sm tracking-wider">
+              <h4 className="font-bold text-white mb-4 uppercase text-xs tracking-widest">
                 Platform
               </h4>
-              <ul className="space-y-2">
-                <li><Link href="/about" className="text-muted-foreground hover:text-accent transition">About Us</Link></li>
-                <li><Link href="/how-it-works" className="text-muted-foreground hover:text-accent transition">How it works</Link></li>
-                <li><Link href="/safety" className="text-muted-foreground hover:text-accent transition">Safety Guidelines</Link></li>
+              <ul className="space-y-2.5">
+                <li><Link href="/about" className="text-white/50 hover:text-red-400 transition text-sm">About Us</Link></li>
+                <li><Link href="/how-it-works" className="text-white/50 hover:text-red-400 transition text-sm">How it works</Link></li>
+                <li><Link href="/safety" className="text-white/50 hover:text-red-400 transition text-sm">Safety Guidelines</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-foreground mb-4 uppercase text-sm tracking-wider">
+              <h4 className="font-bold text-white mb-4 uppercase text-xs tracking-widest">
                 Quick Links
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 <li>
-                  <Link href="/search" className="text-muted-foreground hover:text-accent transition">
+                  <Link href="/search" className="text-white/50 hover:text-red-400 transition text-sm">
                     Find Blood
                   </Link>
                 </li>
                 <li>
-                  <Link href="/signup" className="text-muted-foreground hover:text-accent transition">
+                  <Link href="/signup" className="text-white/50 hover:text-red-400 transition text-sm">
                     Register Donor
                   </Link>
                 </li>
                 <li>
-                  <Link href="/hospitals" className="text-muted-foreground hover:text-accent transition">
+                  <Link href="/hospitals" className="text-white/50 hover:text-red-400 transition text-sm">
                     Partner Hospitals
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-foreground mb-4 uppercase text-sm tracking-wider">
+              <h4 className="font-bold text-white mb-4 uppercase text-xs tracking-widest">
                 Legal
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 <li>
-                  <Link href="/privacy" className="text-muted-foreground hover:text-accent transition">Privacy Policy</Link>
+                  <Link href="/privacy" className="text-white/50 hover:text-red-400 transition text-sm">Privacy Policy</Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="text-muted-foreground hover:text-accent transition">Terms of Use</Link>
+                  <Link href="/terms" className="text-white/50 hover:text-red-400 transition text-sm">Terms of Use</Link>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="pt-6 sm:pt-8 border-t border-card-border text-center">
-            <p className="text-sm text-muted-foreground">
+          <div className="pt-6 sm:pt-8 border-t border-white/10 text-center">
+            <p className="text-sm text-white/40">
               ©2024 RedConnect. Designed for impact. All rights reserved.
             </p>
           </div>

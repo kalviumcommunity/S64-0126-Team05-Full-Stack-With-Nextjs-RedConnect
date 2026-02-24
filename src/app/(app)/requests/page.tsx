@@ -1,140 +1,397 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
-/* ── Icons ── */
-
-function ExternalLinkIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" y1="14" x2="21" y2="3" />
-        </svg>
-    );
+interface BloodRequest {
+    id: string;
+    requestId: string;
+    hospital: string;
+    bloodType: string;
+    units: number;
+    priority: "CRITICAL" | "HIGH" | "NORMAL";
+    requestDate: string;
+    requiredBy: string;
+    status: "PENDING" | "FULFILLED" | "PARTIAL" | "CANCELLED";
+    notes?: string;
 }
 
-function PlusIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
+export default function BloodRequests() {
+    const [showRequestModal, setShowRequestModal] = useState(false);
+    const [selectedPriority, setSelectedPriority] = useState<"CRITICAL" | "HIGH" | "NORMAL">(
+        "NORMAL"
     );
-}
+    const [filterStatus, setFilterStatus] = useState<"ALL" | "PENDING" | "FULFILLED" | "PARTIAL" | "CANCELLED">("ALL");
 
-/* ── Data ── */
+    const mockRequests: BloodRequest[] = [
+        {
+            id: "1",
+            requestId: "#REQ-2024-001",
+            hospital: "City General Hospital",
+            bloodType: "O-",
+            units: 20,
+            priority: "CRITICAL",
+            requestDate: "Oct 24, 2024",
+            requiredBy: "Oct 24, 2024 (URGENT)",
+            status: "PENDING",
+            notes: "Emergency surgery scheduled",
+        },
+        {
+            id: "2",
+            requestId: "#REQ-2024-002",
+            hospital: "St. Jude Medical Center",
+            bloodType: "A+",
+            units: 15,
+            priority: "HIGH",
+            requestDate: "Oct 24, 2024",
+            requiredBy: "Oct 25, 2024",
+            status: "PARTIAL",
+            notes: "Trauma patient, ongoing treatment",
+        },
+        {
+            id: "3",
+            requestId: "#REQ-2024-003",
+            hospital: "Central Hospital",
+            bloodType: "B+",
+            units: 10,
+            priority: "NORMAL",
+            requestDate: "Oct 23, 2024",
+            requiredBy: "Oct 26, 2024",
+            status: "FULFILLED",
+        },
+        {
+            id: "4",
+            requestId: "#REQ-2024-004",
+            hospital: "Westside Hospital",
+            bloodType: "AB-",
+            units: 5,
+            priority: "HIGH",
+            requestDate: "Oct 23, 2024",
+            requiredBy: "Oct 24, 2024",
+            status: "FULFILLED",
+        },
+        {
+            id: "5",
+            requestId: "#REQ-2024-005",
+            hospital: "North General Hospital",
+            bloodType: "O+",
+            units: 8,
+            priority: "NORMAL",
+            requestDate: "Oct 22, 2024",
+            requiredBy: "Oct 25, 2024",
+            status: "CANCELLED",
+            notes: "Patient condition improved, no longer needed",
+        },
+    ];
 
-const initialRequests = [
-    { id: "REQ-2045", entity: "St. Jude Medical", group: "O-", volume: "450ml", type: "Urgent", status: "Pending", time: "Oct 24, 14:32" },
-    { id: "REQ-2044", entity: "City Heart Center", group: "A+", volume: "900ml", type: "Regular", status: "Approved", time: "Oct 24, 12:15" },
-    { id: "REQ-2043", entity: "Westside Clinic", group: "B-", volume: "450ml", type: "Emergency", status: "Fulfilled", time: "Oct 23, 18:45" },
-    { id: "REQ-2042", entity: "General Hospital", group: "O+", volume: "1350ml", type: "Routine", status: "Cancelled", time: "Oct 23, 11:20" },
-];
+    const filteredRequests = mockRequests.filter((req) =>
+        filterStatus === "ALL" ? true : req.status === filterStatus
+    );
 
-export default function RequestsPage() {
-    const [activeTab, setActiveTab] = useState<"All" | "Pending" | "Completed">("All");
+    const stats = {
+        critical: mockRequests.filter((r) => r.status === "PENDING" && r.priority === "CRITICAL")
+            .length,
+        pending: mockRequests.filter((r) => r.status === "PENDING").length,
+        fulfilled: mockRequests.filter((r) => r.status === "FULFILLED").length,
+        totalUnits: mockRequests.reduce((sum, r) => sum + r.units, 0),
+    };
 
-    const requests = initialRequests.filter(item => {
-        if (activeTab === "Pending") return item.status === "Pending";
-        if (activeTab === "Completed") return item.status === "Fulfilled" || item.status === "Cancelled";
-        return true;
-    });
+    const getPriorityColor = (priority: string) => {
+        switch (priority) {
+            case "CRITICAL":
+                return "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400";
+            case "HIGH":
+                return "bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400";
+            case "NORMAL":
+                return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400";
+            default:
+                return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
+        }
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "PENDING":
+                return "text-orange-600 dark:text-orange-400";
+            case "FULFILLED":
+                return "text-green-600 dark:text-green-400";
+            case "PARTIAL":
+                return "text-blue-600 dark:text-blue-400";
+            case "CANCELLED":
+                return "text-gray-600 dark:text-gray-400";
+            default:
+                return "text-gray-600 dark:text-gray-400";
+        }
+    };
+
+    const handleCreateRequest = () => {
+        toast.success("Blood request submitted successfully!");
+        setShowRequestModal(false);
+    };
+
+    const handleFulfillRequest = (): void => {
+        toast.success("Request marked as fulfilled");
+    };
+
+    const handleCancelRequest = (): void => {
+        toast.info("Request cancelled");
+    };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Blood Requests</h1>
-                    <p className="text-sm text-gray-500">Manage incoming and outgoing blood transfer requests.</p>
+        <div className="space-y-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="min-w-0">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                        Blood Requests
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                        Manage incoming and outgoing blood requests across the network
+                    </p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-red-600 rounded-xl text-sm font-semibold text-white hover:bg-red-700 transition shadow-md shadow-red-200">
-                    <PlusIcon className="w-4 h-4" />
-                    New Request
+                <button
+                    onClick={() => setShowRequestModal(true)}
+                    className="px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold flex items-center gap-2 flex-shrink-0 shadow-md"
+                >
+                    ➕ New Request
                 </button>
             </div>
 
-            <div className="flex border-b border-gray-100">
-                {["All", "Pending", "Completed"].map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab as any)}
-                        className={`px-6 py-4 text-sm font-medium transition-all relative ${activeTab === tab ? "text-red-600" : "text-gray-500 hover:text-gray-900"
-                            }`}
-                    >
-                        {tab}
-                        {activeTab === tab && (
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600" />
-                        )}
-                    </button>
-                ))}
-            </div>
-
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-500 uppercase text-xs font-semibold">
-                            <tr>
-                                <th className="px-6 py-4">Request ID</th>
-                                <th className="px-6 py-4">Source / Entity</th>
-                                <th className="px-6 py-4">Blood Group</th>
-                                <th className="px-6 py-4">Volume</th>
-                                <th className="px-6 py-4">Type</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {requests.map((item) => (
-                                <tr key={item.id} className="hover:bg-gray-50 transition">
-                                    <td className="px-6 py-4 font-medium text-gray-900">{item.id}</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${item.entity.includes("St.") ? "bg-blue-50 text-blue-600" : "bg-purple-50 text-purple-600"
-                                                }`}>
-                                                {item.entity.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">{item.entity}</p>
-                                                <p className="text-[10px] text-gray-500">{item.time}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="bg-red-50 text-red-700 px-2.5 py-1 rounded font-bold text-xs border border-red-100">
-                                            {item.group}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-600">{item.volume}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.type === 'Urgent' ? 'text-red-600 bg-red-50' :
-                                                item.type === 'Emergency' ? 'text-orange-600 bg-orange-50' :
-                                                    'text-gray-600 bg-gray-50'
-                                            }`}>
-                                            {item.type}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-1.5">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'Pending' ? 'bg-yellow-500' :
-                                                    item.status === 'Approved' ? 'bg-blue-500' :
-                                                        item.status === 'Fulfilled' ? 'bg-green-500' :
-                                                            'bg-gray-400'
-                                                }`} />
-                                            <span className="font-medium text-gray-700">{item.status}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <button className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-400 hover:text-gray-900">
-                                            <ExternalLinkIcon className="w-4 h-4" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            {/* KPIs */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="bg-white dark:bg-[#111118] rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-[#1f1f2e] shadow-sm dark:shadow-none">
+                    <p className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 tracking-wider mb-2">CRITICAL PENDING</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">{stats.critical}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-2">Requiring immediate action</p>
+                </div>
+                <div className="bg-white dark:bg-[#111118] rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-[#1f1f2e] shadow-sm dark:shadow-none">
+                    <p className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 tracking-wider mb-2">TOTAL PENDING</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400">{stats.pending}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-2">Awaiting fulfillment</p>
+                </div>
+                <div className="bg-white dark:bg-[#111118] rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-[#1f1f2e] shadow-sm dark:shadow-none">
+                    <p className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 tracking-wider mb-2">FULFILLED TODAY</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.fulfilled}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-2">Successfully completed</p>
+                </div>
+                <div className="bg-white dark:bg-[#111118] rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-[#1f1f2e] shadow-sm dark:shadow-none">
+                    <p className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 tracking-wider mb-2">TOTAL UNITS</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.totalUnits}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-2">Across all requests</p>
                 </div>
             </div>
+
+            {/* Requests List with Filters */}
+            <div className="bg-white dark:bg-[#111118] rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-[#1f1f2e] shadow-sm dark:shadow-none">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                        All Requests
+                    </h2>
+                    <div className="flex gap-2 flex-wrap">
+                        {(["ALL", "PENDING", "FULFILLED", "PARTIAL", "CANCELLED"] as const).map((status) => (
+                            <button
+                                key={status}
+                                onClick={() => setFilterStatus(status)}
+                                className={`px-3 py-1 rounded text-xs font-semibold transition ${filterStatus === status
+                                    ? "bg-red-600 text-white"
+                                    : "bg-gray-100 dark:bg-[#16161f] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#1f1f2e]"
+                                    }`}
+                            >
+                                {status}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {filteredRequests.length === 0 ? (
+                    <div className="text-center py-12">
+                        <p className="text-gray-600 dark:text-gray-300 text-lg mb-2">
+                            No requests found
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Try adjusting your filters
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-gray-200 dark:border-[#1f1f2e]">
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 dark:text-gray-400">REQUEST ID</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 dark:text-gray-400">HOSPITAL</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 dark:text-gray-400">BLOOD TYPE</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 dark:text-gray-400">UNITS</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 dark:text-gray-400">PRIORITY</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 dark:text-gray-400">REQUIRED BY</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 dark:text-gray-400">STATUS</th>
+                                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 dark:text-gray-400">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredRequests.map((request) => (
+                                    <tr
+                                        key={request.id}
+                                        className="border-b border-gray-200 dark:border-[#1f1f2e] hover:bg-gray-50 dark:hover:bg-[#16161f] transition"
+                                    >
+                                        <td className="py-4 px-4 text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                                            {request.requestId}
+                                        </td>
+                                        <td className="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                            {request.hospital}
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <span className="inline-block bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 px-3 py-1 rounded-full text-sm font-medium">
+                                                {request.bloodType}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4 text-sm font-medium text-gray-900 dark:text-white">
+                                            {request.units} units
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <span
+                                                className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getPriorityColor(
+                                                    request.priority
+                                                )}`}
+                                            >
+                                                {request.priority}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                            {request.requiredBy}
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <span
+                                                className={`text-xs font-bold tracking-wider ${getStatusColor(
+                                                    request.status
+                                                )}`}
+                                            >
+                                                {request.status === "PENDING" && "● "}
+                                                {request.status}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <div className="flex gap-2">
+                                                {request.status === "PENDING" && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleFulfillRequest(request.id)}
+                                                            className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition"
+                                                        >
+                                                            ✓ Fulfill
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleCancelRequest(request.id)}
+                                                            className="px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700 transition"
+                                                        >
+                                                            ✕ Cancel
+                                                        </button>
+                                                    </>
+                                                )}
+                                                <button className="px-2 py-1 border border-gray-300 dark:border-[#1f1f2e] rounded text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#16161f] transition">
+                                                    👁️ View
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* New Request Modal */}
+            {showRequestModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg w-full max-w-md p-6 overflow-y-auto max-h-96">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                            New Blood Request
+                        </h2>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Blood Type
+                                </label>
+                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-DEFAULT">
+                                    <option>Select blood type</option>
+                                    <option>O-</option>
+                                    <option>O+</option>
+                                    <option>A-</option>
+                                    <option>A+</option>
+                                    <option>B-</option>
+                                    <option>B+</option>
+                                    <option>AB-</option>
+                                    <option>AB+</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Number of Units
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="e.g., 10"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-DEFAULT"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Priority
+                                </label>
+                                <select
+                                    value={selectedPriority}
+                                    onChange={(e) =>
+                                        setSelectedPriority(e.target.value as "CRITICAL" | "HIGH" | "NORMAL")
+                                    }
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-DEFAULT"
+                                >
+                                    <option value="NORMAL">Normal</option>
+                                    <option value="HIGH">High</option>
+                                    <option value="CRITICAL">Critical</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Required By
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-DEFAULT"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Notes
+                                </label>
+                                <textarea
+                                    placeholder="Any additional details..."
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-DEFAULT h-24 resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setShowRequestModal(false)}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateRequest}
+                                className="flex-1 px-4 py-2 bg-brand-DEFAULT text-white rounded-lg hover:bg-brand-dark transition font-medium"
+                            >
+                                Submit Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

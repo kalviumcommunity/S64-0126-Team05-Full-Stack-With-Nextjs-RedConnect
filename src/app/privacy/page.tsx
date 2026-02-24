@@ -12,42 +12,59 @@ function ArrowLeftIcon({ className }: { className?: string }) {
 }
 
 export default function PrivacyPage() {
+    const sections = [
+        {
+            title: "Information We Collect",
+            content: "We collect information you provide directly, including your name, email, blood type, and donation history. We may also collect usage data such as IP addresses and browser information."
+        },
+        {
+            title: "How We Use Your Information",
+            content: "Your data is used to connect donors with hospitals, manage blood requests, provide analytics for blood banks, and improve our services. We never sell your personal information."
+        },
+        {
+            title: "Data Security",
+            content: "We implement industry-standard security measures including encryption, secure servers, and access controls to protect your personal information from unauthorized access."
+        },
+        {
+            title: "Your Rights",
+            content: "You have the right to access, update, or delete your personal data at any time. Contact our privacy team for any data-related requests."
+        },
+    ];
+
     return (
-        <div className="min-h-screen bg-white">
-            <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
+        <div className="min-h-screen bg-white dark:bg-[#0a0a0f] transition-colors">
+            {/* Header */}
+            <header className="bg-white dark:bg-[#111118] shadow-sm dark:shadow-none sticky top-0 z-10 border-b border-gray-100 dark:border-[#1f1f2e]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition">
-                        <ArrowLeftIcon className="w-5 h-5" />
+                    <Link href="/" className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
                         <span className="font-medium">Back to Home</span>
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900">Privacy Policy</h1>
-                    <div className="w-20"></div>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">Privacy Policy</h1>
+                    <div className="w-20 hidden sm:block"></div>
                 </div>
             </header>
 
-            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="prose prose-gray max-w-none text-gray-600">
-                    <p className="mb-4">Last updated: February 18, 2026</p>
-                    <p className="mb-6">
-                        At RedConnect, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or use our services.
-                    </p>
+            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Privacy Policy</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 sm:mb-10">Last updated: January 2024</p>
 
-                    <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Information We Collect</h2>
-                    <p className="mb-4">
-                        We may collect personal information that you voluntarily provide to us when you register on the website, express an interest in obtaining information about us or our products and services, when you participate in activities on the website, or otherwise when you contact us.
-                    </p>
+                <div className="space-y-8">
+                    {sections.map((section) => (
+                        <div key={section.title} className="bg-gray-50 dark:bg-[#111118] p-6 sm:p-8 rounded-2xl border border-gray-100 dark:border-[#1f1f2e]">
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3">{section.title}</h2>
+                            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{section.content}</p>
+                        </div>
+                    ))}
+                </div>
 
-                    <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">How We Use Your Information</h2>
-                    <p className="mb-4">
-                        We use personal information collected via our website for a variety of business purposes described below. We process your personal information for these purposes in reliance on our legitimate business interests, in order to enter into or perform a contract with you, with your consent, and/or for compliance with our legal obligations.
+                <div className="mt-8 sm:mt-10 text-center">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Questions about our privacy policy?{" "}
+                        <Link href="/contact" className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium">
+                            Contact us
+                        </Link>
                     </p>
-                    <ul className="list-disc pl-6 space-y-2 mb-4">
-                        <li>Facilitate account creation and logon process.</li>
-                        <li>Post testimonials.</li>
-                        <li>Request feedback.</li>
-                        <li>Enable user-to-user communications.</li>
-                        <li>Manage user accounts.</li>
-                    </ul>
                 </div>
             </main>
         </div>

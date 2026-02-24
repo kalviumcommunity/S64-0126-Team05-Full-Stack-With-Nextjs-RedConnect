@@ -47,46 +47,11 @@ export default function HospitalsPage() {
     const [searchTerm, setSearchTerm] = useState("");
 
     const hospitals = [
-        {
-            id: 1,
-            name: "City General Hospital",
-            address: "124 Medical Dr, Downtown",
-            phone: "+1 (555) 123-4567",
-            distance: "2.4 km",
-            type: "Public",
-        },
-        {
-            id: 2,
-            name: "St. Jude Medical Center",
-            address: "88 West Avenue, Uptown",
-            phone: "+1 (555) 987-6543",
-            distance: "4.1 km",
-            type: "Private",
-        },
-        {
-            id: 3,
-            name: "Community Health Clinic",
-            address: "45 North St, Suburbs",
-            phone: "+1 (555) 555-0199",
-            distance: "6.8 km",
-            type: "Public",
-        },
-        {
-            id: 4,
-            name: "Veteran's Memorial Hospital",
-            address: "101 Veterans Way",
-            phone: "+1 (555) 222-3333",
-            distance: "8.2 km",
-            type: "Government",
-        },
-        {
-            id: 5,
-            name: "Children's Speciality Hospital",
-            address: "55 Kids Lane",
-            phone: "+1 (555) 444-5555",
-            distance: "12.5 km",
-            type: "Speciality",
-        },
+        { id: 1, name: "City General Hospital", address: "124 Medical Dr, Downtown", phone: "+1 (555) 123-4567", distance: "2.4 km", type: "Public" },
+        { id: 2, name: "St. Jude Medical Center", address: "88 West Avenue, Uptown", phone: "+1 (555) 987-6543", distance: "4.1 km", type: "Private" },
+        { id: 3, name: "Community Health Clinic", address: "45 North St, Suburbs", phone: "+1 (555) 555-0199", distance: "6.8 km", type: "Public" },
+        { id: 4, name: "Veteran's Memorial Hospital", address: "101 Veterans Way", phone: "+1 (555) 222-3333", distance: "8.2 km", type: "Government" },
+        { id: 5, name: "Children's Speciality Hospital", address: "55 Kids Lane", phone: "+1 (555) 444-5555", distance: "12.5 km", type: "Speciality" },
     ];
 
     const filteredHospitals = hospitals.filter((hospital) =>
@@ -95,29 +60,28 @@ export default function HospitalsPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* ── Header ── */}
-            <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] flex flex-col transition-colors">
+            {/* Header */}
+            <header className="bg-white dark:bg-[#111118] shadow-sm dark:shadow-none sticky top-0 z-10 border-b border-gray-100 dark:border-[#1f1f2e]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition">
-                        <ArrowLeftIcon className="w-5 h-5" />
+                    <Link href="/" className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
                         <span className="font-medium">Back to Home</span>
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900">Partner Hospitals</h1>
-                    <div className="w-20"></div> {/* Spacer for centering */}
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">Partner Hospitals</h1>
+                    <div className="w-20 hidden sm:block"></div>
                 </div>
             </header>
-
 
             <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
                 {/* Search Bar */}
                 <div className="max-w-xl mx-auto mb-8 relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <SearchIcon className="h-5 w-5 text-gray-400" />
+                        <SearchIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                     </div>
                     <input
                         type="text"
-                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 sm:text-sm shadow-sm transition duration-150 ease-in-out"
+                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-[#1f1f2e] rounded-lg leading-5 bg-white dark:bg-[#111118] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 sm:text-sm shadow-sm dark:shadow-none transition duration-150 ease-in-out"
                         placeholder="Search hospitals by name or location..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -127,31 +91,31 @@ export default function HospitalsPage() {
                 {/* Hospitals Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredHospitals.map((hospital) => (
-                        <div key={hospital.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 Hover:shadow-md transition">
+                        <div key={hospital.id} className="bg-white dark:bg-[#111118] rounded-xl shadow-sm dark:shadow-none border border-gray-200 dark:border-[#1f1f2e] p-6 hover:shadow-md dark:hover:border-[#2a2a3e] transition">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg flex items-center justify-center flex-shrink-0">
                                     <span className="font-bold text-lg">H</span>
                                 </div>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300">
                                     {hospital.type}
                                 </span>
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">{hospital.name}</h3>
-                            <div className="space-y-2 text-sm text-gray-500">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1">{hospital.name}</h3>
+                            <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
                                 <div className="flex items-start gap-2">
                                     <MapPinIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                    <span>{hospital.address}</span>
+                                    <span className="line-clamp-2">{hospital.address}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold bg-gray-100 px-2 py-0.5 rounded text-gray-600">{hospital.distance} away</span>
+                                    <span className="text-xs font-semibold bg-gray-100 dark:bg-[#16161f] px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">{hospital.distance} away</span>
                                 </div>
                             </div>
-                            <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                <a href={`tel:${hospital.phone}`} className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition">
-                                    <PhoneIcon className="w-4 h-4" />
+                            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-[#1f1f2e] flex justify-between items-center">
+                                <a href={`tel:${hospital.phone}`} className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition">
+                                    <PhoneIcon className="w-4 h-4 flex-shrink-0" />
                                     Call Now
                                 </a>
-                                <button className="text-sm font-medium text-red-600 hover:text-red-700 transition">
+                                <button className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition">
                                     View Details
                                 </button>
                             </div>
@@ -160,7 +124,7 @@ export default function HospitalsPage() {
 
                     {filteredHospitals.length === 0 && (
                         <div className="col-span-full text-center py-12">
-                            <p className="text-gray-500 text-lg">No hospitals found matching "{searchTerm}".</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-lg">No hospitals found matching &quot;{searchTerm}&quot;.</p>
                         </div>
                     )}
                 </div>

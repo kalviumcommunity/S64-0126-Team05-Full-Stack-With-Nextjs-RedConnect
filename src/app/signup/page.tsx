@@ -59,7 +59,7 @@ export default function SignupPage() {
     const router = useRouter();
     const { login } = useAuthContext();
 
-    const [role, setRole] = useState<"Donor" | "Hospital" | "NGO">("Donor");
+    const [role, setRole] = useState<"DONOR" | "HOSPITAL" | "NGO">("DONOR");
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -99,13 +99,21 @@ export default function SignupPage() {
         // Simulate API call
         setTimeout(() => {
             Cookies.set("token", "mock.jwt.token", { expires: 1 });
-            login(email);
+            login(email, role);
             setIsLoading(false);
-            router.push("/dashboard");
+
+            // Redirect based on role
+            if (role === "NGO") {
+                router.push("/dashboard/ngo");
+            } else if (role === "DONOR") {
+                router.push("/dashboard/donor");
+            } else {
+                router.push("/dashboard");
+            }
         }, 800);
     };
 
-    const roles: ("Donor" | "Hospital" | "NGO")[] = ["Donor", "Hospital", "NGO"];
+    const roles: ("DONOR" | "HOSPITAL" | "NGO")[] = ["DONOR", "HOSPITAL", "NGO"];
 
     return (
         <div className="min-h-screen flex flex-col lg:flex-row bg-background">
@@ -164,11 +172,11 @@ export default function SignupPage() {
                                         type="button"
                                         onClick={() => setRole(r)}
                                         className={`flex-1 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer ${role === r
-                                                ? "bg-red-600 text-white shadow-sm"
-                                                : "bg-card-bg text-muted-foreground hover:bg-muted"
+                                            ? "bg-red-600 text-white shadow-sm"
+                                            : "bg-card-bg text-muted-foreground hover:bg-muted"
                                             }`}
                                     >
-                                        {r}
+                                        {r === "DONOR" ? "Donor" : r === "HOSPITAL" ? "Hospital" : "NGO"}
                                     </button>
                                 ))}
                             </div>

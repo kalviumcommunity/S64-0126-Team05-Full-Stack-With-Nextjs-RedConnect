@@ -32,66 +32,65 @@ export default function ContactPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate form submission logic
         setSubmitted(true);
         setTimeout(() => setSubmitted(false), 3000);
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* ── Header ── */}
-            <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] flex flex-col transition-colors">
+            {/* Header */}
+            <header className="bg-white dark:bg-[#111118] shadow-sm dark:shadow-none sticky top-0 z-10 border-b border-gray-100 dark:border-[#1f1f2e]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition">
-                        <ArrowLeftIcon className="w-5 h-5" />
+                    <Link href="/" className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <ArrowLeftIcon className="w-5 h-5 flex-shrink-0" />
                         <span className="font-medium">Back to Home</span>
                     </Link>
-                    <h1 className="text-xl font-bold text-gray-900">Emergency Contact</h1>
-                    <div className="w-20"></div>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">Emergency Contact</h1>
+                    <div className="w-20 hidden sm:block"></div>
                 </div>
             </header>
 
-            <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                     {/* Emergency Info */}
                     <div>
-                        <h2 className="text-3xl font-bold text-gray-900 mb-6">We are here to help.</h2>
-                        <p className="text-gray-600 mb-8 text-lg">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6">We are here to help.</h2>
+                        <p className="text-gray-600 dark:text-gray-300 mb-8 text-base sm:text-lg">
                             If you have a medical emergency, please call your local emergency number immediately. For blood availability inquiries, supply coordination, or technical support, use the contact details below.
                         </p>
 
                         <div className="space-y-6">
-                            <div className="bg-red-50 p-6 rounded-xl border border-red-100">
-                                <h3 className="font-bold text-red-700 text-lg mb-2">Emergency Hotline (24/7)</h3>
-                                <div className="flex items-center gap-3">
-                                    <PhoneIcon className="w-6 h-6 text-red-600" />
-                                    <span className="text-2xl font-bold text-red-600">1-800-RED-HELP</span>
+                            <div className="bg-red-50 dark:bg-red-900/15 p-6 rounded-xl border border-red-100 dark:border-red-800/30">
+                                <h3 className="font-bold text-red-700 dark:text-red-400 text-lg mb-2">Emergency Hotline (24/7)</h3>
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <PhoneIcon className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0" />
+                                    <span className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">1-800-RED-HELP</span>
                                 </div>
-                                <p className="text-sm text-red-600/80 mt-2">For urgent blood requests only.</p>
+                                <p className="text-sm text-red-600/80 dark:text-red-400/70 mt-2">For urgent blood requests only.</p>
                             </div>
 
-                            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                                <h3 className="font-bold text-gray-900 text-lg mb-2">General Inquiries</h3>
+                            <div className="bg-white dark:bg-[#111118] p-6 rounded-xl border border-gray-200 dark:border-[#1f1f2e] shadow-sm dark:shadow-none">
+                                <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">General Inquiries</h3>
                                 <div className="flex items-center gap-3 mb-2">
-                                    <a href="mailto:support@redconnect.com" className="text-gray-600 hover:text-red-600 transition">support@redconnect.com</a>
+                                    <a href="mailto:support@redconnect.com" className="text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition break-all">support@redconnect.com</a>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-gray-600">+1 (555) 123-4567</span>
+                                    <span className="text-gray-600 dark:text-gray-300">+1 (555) 123-4567</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Contact Form */}
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a message</h2>
+                    <div className="bg-white dark:bg-[#111118] p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-none border border-gray-200 dark:border-[#1f1f2e]">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6">Send us a message</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
                                 <input
                                     type="text"
                                     id="name"
-                                    className="block w-full rounded-lg border-gray-300 border px-4 py-2 focus:border-red-500 focus:ring-red-500 shadow-sm"
+                                    className="block w-full rounded-lg border-gray-300 dark:border-[#1f1f2e] border px-4 py-2 bg-white dark:bg-[#16161f] text-gray-900 dark:text-white placeholder-gray-400 focus:border-red-500 focus:ring-red-500 shadow-sm dark:shadow-none"
                                     placeholder="Your Name"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
@@ -99,11 +98,11 @@ export default function ContactPage() {
                                 />
                             </div>
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
                                 <input
                                     type="email"
                                     id="email"
-                                    className="block w-full rounded-lg border-gray-300 border px-4 py-2 focus:border-red-500 focus:ring-red-500 shadow-sm"
+                                    className="block w-full rounded-lg border-gray-300 dark:border-[#1f1f2e] border px-4 py-2 bg-white dark:bg-[#16161f] text-gray-900 dark:text-white placeholder-gray-400 focus:border-red-500 focus:ring-red-500 shadow-sm dark:shadow-none"
                                     placeholder="you@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -111,11 +110,11 @@ export default function ContactPage() {
                                 />
                             </div>
                             <div>
-                                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
                                 <textarea
                                     id="message"
                                     rows={4}
-                                    className="block w-full rounded-lg border-gray-300 border px-4 py-2 focus:border-red-500 focus:ring-red-500 shadow-sm"
+                                    className="block w-full rounded-lg border-gray-300 dark:border-[#1f1f2e] border px-4 py-2 bg-white dark:bg-[#16161f] text-gray-900 dark:text-white placeholder-gray-400 focus:border-red-500 focus:ring-red-500 shadow-sm dark:shadow-none"
                                     placeholder="How can we help you?"
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
